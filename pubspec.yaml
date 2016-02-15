@@ -1,0 +1,17 @@
+name: flow
+description: A Dart organization chart.
+version: 0.0.1
+author: Frank Pepermans <frank@igindo.com>
+homepage: https://www.igindo.com
+
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+
+dependencies:
+  stagexl: any
+  tuple: any
+  stream_channel: any
+  rxdart: any
+
+dev_dependencies:
+  test: '>=0.12.0 <0.13.0'
