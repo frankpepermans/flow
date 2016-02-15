@@ -8,5 +8,5 @@ library flow;
 
 // TODO: Export any libraries intended for clients of this package.
 
-export 'src/renderer.dart';
+export 'src/hierarchy.dart';
 

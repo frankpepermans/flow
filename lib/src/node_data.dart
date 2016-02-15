@@ -22,10 +22,10 @@ class NodeData<T> {
   Sink<NodeData> get addChildSink => _addChild$ctrl.sink;
   Sink<NodeData> get removeChildSink => _removeChild$ctrl.sink;
   Stream<NodeData> get parent$ => _parent$ctrl.stream;
-  Stream<Tuple3<NodeData<T>, double, double>> get childPosition$ => _childPosition$ctrl.stream;
+  Stream<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>> get childPosition$ => _childPosition$ctrl.stream;
   Stream<UnmodifiableListView<NodeData<T>>> get children$ => _children$ctrl.stream;
 
-  final StreamController<Tuple3<NodeData<T>, double, double>> _childPosition$ctrl = new StreamController<Tuple3<NodeData<T>, double, double>>();
+  final StreamController<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>> _childPosition$ctrl = new StreamController<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>>();
   final StreamController<NodeData<T>> _addChild$ctrl = new StreamController<NodeData<T>>();
   final StreamController<NodeData<T>> _removeChild$ctrl = new StreamController<NodeData<T>>();
   final StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>> _retryChild$ctrl = new StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>>();
@@ -80,9 +80,9 @@ class NodeData<T> {
 
               for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth;
 
-              return new Tuple4<NodeData<T>, double, double, Tuple2<double, double>>(tuple.item1, x, y, dwh);
-            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple4<NodeData<T>, double, double, Tuple2<double, double>> tuple) {
-              _childPosition$ctrl.add(new Tuple3<NodeData<T>, double, double>(tuple.item1, tuple.item2, tuple.item3));
+              return new Tuple5<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>>(tuple.item1, x, y, dwh, childrenStates);
+            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple5<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>> tuple) {
+              _childPosition$ctrl.add(new Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>(tuple.item1, tuple.item2, tuple.item3, tuple.item5));
 
               node.recursiveWidth$ctrl.add(tuple.item4.item1);
               node.recursiveHeight$ctrl.add(tuple.item4.item2);

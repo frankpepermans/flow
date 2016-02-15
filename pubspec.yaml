@@ -12,6 +12,7 @@ dependencies:
   tuple: any
   stream_channel: any
   rxdart: any
+  quiver_hashcode: any
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'

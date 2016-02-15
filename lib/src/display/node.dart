@@ -95,8 +95,10 @@ class Node {
 
     // mock async content loaded
     new Timer(const Duration(seconds: 1), () {
-      _widthController.add(240.0);
-      _heightController.add(220.0);
+      final math.Random R = new math.Random();
+
+      _widthController.add(100.0 + R.nextDouble() * 100.0);
+      _heightController.add(100.0 + R.nextDouble() * 100.0);
     });
   }
 

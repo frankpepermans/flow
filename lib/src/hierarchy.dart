@@ -6,14 +6,19 @@ import 'dart:collection';
 import 'package:flow/src/force_print.dart' show fprint;
 import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
+import 'package:flow/src/digest.dart';
+import 'package:flow/src/render/renderer.dart';
 
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
+import 'package:quiver_hashcode/hashcode.dart' as quiver;
 
 typedef bool NodeEqualityHandler<T>(T dataA, T dataB);
 typedef int ChildCompareHandler<T>(dataA, dataB);
 
-class Renderer<T> {
+class Hierarchy<T> {
+
+  final Renderer<T> renderer;
 
   final StreamController<Tuple3<T, T, String>> _addNodeData$ctrl = new StreamController<Tuple3<T, T, String>>();
   final StreamController<T> _removeNodeData$ctrl = new StreamController<T>();
@@ -23,8 +28,10 @@ class Renderer<T> {
   final StreamController<NodeState> node$ctrl = new StreamController<NodeState>();
 
   NodeData<T> topLevelNodeData;
+  Digest _currentDigest;
+  Future<Map<int, Map<String, dynamic>>> _currentDigestFuture;
 
-  Renderer({NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
+  Hierarchy(this.renderer, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
@@ -71,17 +78,17 @@ class Renderer<T> {
         new rx.Observable.combineLatest(<Stream>[
           newNodeData.node.state$.distinct((NodeState stateA, NodeState stateB) => stateA.equals(stateB)),
           newNodeData.parent$,
-          newNodeData.children$
-        ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children) {
-          return {
+          newNodeData.children$,
+          rx.observable(newNodeData.childPosition$).startWith([null])
+        ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>> childPos) {
+          return new Digestable(quiver.hash2(newNodeData, childPos?.item1), {
             'self': newNodeData,
             'state': state,
             'parent': parent,
-            'children': children
-          };
-        }).listen(fprint);
-
-        newNodeData.childPosition$.listen(fprint);
+            'children': children,
+            'childPos': childPos
+          });
+        }).listen(_digest);
 
         newNodeData.init();
 
@@ -113,5 +120,29 @@ class Renderer<T> {
   void add(T data, {T parentData, String className}) => _addNodeData$ctrl.add(new Tuple3<T, T, String>(data, parentData, className));
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
+
+  void _digest(Digestable digestable) {
+    if (_currentDigest == null) _currentDigest = new Digest();
+
+    _currentDigest.append(digestable);
+
+    if (_currentDigestFuture == null) {
+      final Completer<Map<int, Map<String, dynamic>>> completer = new Completer<Map<int, Map<String, dynamic>>>();
+
+      new Timer(const Duration(milliseconds: 30), () {
+        completer.complete(_currentDigest.flush());
+
+        _currentDigest = null;
+        _currentDigestFuture = null;
+      });
+
+      _currentDigestFuture = completer.future.then(_render);
+    }
+  }
+
+  void _render(Map<int, Map<String, dynamic>> data) {
+    print('NEW LOOP');
+    renderer.invalidate(data.values);
+  }
 
 }

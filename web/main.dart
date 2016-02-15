@@ -1,15 +1,23 @@
+import 'dart:html' as html;
+
+import 'package:stagexl/stagexl.dart' as xl;
+
 import 'package:flow/flow.dart';
 
-void main() {
-  Renderer<String> renderer = new Renderer<String>(childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+import 'package:flow/src/render/webgl_renderer.dart';
 
-  renderer.add('B', parentData: 'A');
-  renderer.add('C', parentData: 'A');
-  renderer.add('D', parentData: 'C');
-  renderer.add('A', className: 'top-level-node');
+void main() {
+  WebglRenderer<String> renderer = new WebglRenderer<String>('#stage');
+  Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+
+  hierarchy.add('B', parentData: 'A');
+  hierarchy.add('C', parentData: 'A');
+  hierarchy.add('D', parentData: 'C');
+  hierarchy.add('A', className: 'top-level-node');
   //renderer.remove('C');
-  renderer.add('E', parentData: 'A');
-  renderer.add('F', className: 'top-level-node');
+  hierarchy.add('E', parentData: 'A');
+  hierarchy.add('F', parentData: 'A');
+  hierarchy.add('G', parentData: 'C');
 
   /*
   A F
