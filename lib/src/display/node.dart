@@ -15,7 +15,7 @@ class NodeState {
   final double width, height, recursiveWidth, recursiveHeight;
 
   double get actualWidth => math.max(width, recursiveWidth);
-  double get actualHeight => height;
+  double get actualHeight => math.max(height, recursiveHeight);
 
   NodeState(
     this.className,
@@ -76,14 +76,11 @@ class Node {
     size$ctrl = new StreamController<Tuple2<double, double>>();
 
     final rx.Observable<NodeState> combinedState$ = new rx.Observable<NodeState>.combineLatest(
-      <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, _recursiveHeightController.stream],
-      (String className, bool isOpen, int childIndex, double width, double height, double recursiveWidth, double recursiveHeight) => new NodeState(className, isOpen, childIndex, width, height, recursiveWidth, recursiveHeight));
+      <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, rx.observable(_recursiveHeightController.stream).max()],
+      (String className, bool isOpen, int childIndex, double width, double height, double recursiveWidth, double recursiveHeight)
+        => new NodeState(className, isOpen, childIndex, width, height, recursiveWidth, recursiveHeight));
 
     combinedState$.pipe(controller.local.sink);
-
-    new rx.Observable<Tuple2<NodeState, Tuple2<double, double>>>.combineLatest(
-      <Stream>[state$, size$ctrl.stream], (NodeState state, Tuple2<double, double> size) => new Tuple2<NodeState, Tuple2<double, double>>(state, size)
-    ).listen(render);
 
     _classNameController.add('node');
     _isOpenController.add(false);
@@ -93,17 +90,39 @@ class Node {
     _recursiveWidthController.add(.0);
     _recursiveHeightController.add(.0);
 
-    // mock async content loaded
-    new Timer(const Duration(seconds: 1), () {
-      final math.Random R = new math.Random();
+    final math.Random R = new math.Random();
 
-      _widthController.add(100.0 + R.nextDouble() * 100.0);
-      _heightController.add(100.0 + R.nextDouble() * 100.0);
+    if (GEN == null) GEN = _gen();
+
+    _widthController.add(Node.GEN.elementAt(Node.GEN_I++));
+    _heightController.add(Node.GEN.elementAt(Node.GEN_I++));
+
+
+
+    // mock async content loaded
+    new Timer.periodic(new Duration(milliseconds: 1000), (_) {
+      _widthController.add(Node.GEN.elementAt(Node.GEN_I++));
+      _heightController.add(Node.GEN.elementAt(Node.GEN_I++));
     });
   }
 
+  static Iterable<double> GEN;
+  static int GEN_I = 0;
+
   void render(Tuple2<NodeState, Tuple2<double, double>> data) {
 
+  }
+
+  Iterable<double> _gen() sync* {
+    double s = 100.0;
+
+    while (true) {
+      s += 10.0;
+
+      if (s > 200.0) s = 100.0;
+
+      yield s;
+    }
   }
 
 }

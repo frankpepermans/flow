@@ -22,10 +22,10 @@ class NodeData<T> {
   Sink<NodeData> get addChildSink => _addChild$ctrl.sink;
   Sink<NodeData> get removeChildSink => _removeChild$ctrl.sink;
   Stream<NodeData> get parent$ => _parent$ctrl.stream;
-  Stream<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>> get childPosition$ => _childPosition$ctrl.stream;
+  Stream<Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>> get childPosition$ => _childPosition$ctrl.stream;
   Stream<UnmodifiableListView<NodeData<T>>> get children$ => _children$ctrl.stream;
 
-  final StreamController<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>> _childPosition$ctrl = new StreamController<Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>>();
+  final StreamController<Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>> _childPosition$ctrl = new StreamController<Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>>();
   final StreamController<NodeData<T>> _addChild$ctrl = new StreamController<NodeData<T>>();
   final StreamController<NodeData<T>> _removeChild$ctrl = new StreamController<NodeData<T>>();
   final StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>> _retryChild$ctrl = new StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>>();
@@ -55,6 +55,7 @@ class NodeData<T> {
             list.add(tuple.item1);
 
             new rx.Observable.combineLatest(<Stream>[
+              node.state$.distinct((NodeState stateA, NodeState stateB) => stateA.equals(stateB)),
               tuple.item1.node.state$.distinct((NodeState stateA, NodeState stateB) => stateA.equals(stateB)),
               rx.observable(children$).flatMapLatest((UnmodifiableListView<NodeData<T>> children) {
                 final int len = children.length;
@@ -73,19 +74,21 @@ class NodeData<T> {
 
                 return childStates$.stream;
               })
-            ], (NodeState childState, UnmodifiableListView<NodeState> childrenStates) {
-              final Tuple2<double, double> dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.actualHeight)));
-              final double y = dwh.item2/2 - childState.actualHeight/2;
+            ], (NodeState state, NodeState childState, UnmodifiableListView<NodeState> childrenStates) {
+              final Tuple2<double, double> dwh = childrenStates.fold(new Tuple2<double, double>(.0, state.actualHeight), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.actualHeight)));
+              final double y = dwh.item2;
               double x = -dwh.item1/2 + childState.actualWidth/2;
 
               for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth;
 
-              return new Tuple5<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>>(tuple.item1, x, y, dwh, childrenStates);
-            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple5<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>> tuple) {
-              _childPosition$ctrl.add(new Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>>(tuple.item1, tuple.item2, tuple.item3, tuple.item5));
+              return new Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, x, y, dwh, childrenStates, childState);
+            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState> tuple) {
+              _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
               node.recursiveWidth$ctrl.add(tuple.item4.item1);
               node.recursiveHeight$ctrl.add(tuple.item4.item2);
+
+              tuple.item1.node.recursiveHeight$ctrl.add(tuple.item4.item2);
             });
             break;
           case NodeDataChildOperation.REMOVE:

@@ -80,7 +80,7 @@ class Hierarchy<T> {
           newNodeData.parent$,
           newNodeData.children$,
           rx.observable(newNodeData.childPosition$).startWith([null])
-        ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple4<NodeData<T>, double, double, UnmodifiableListView<NodeState>> childPos) {
+        ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos) {
           return new Digestable(quiver.hash2(newNodeData, childPos?.item1), {
             'self': newNodeData,
             'state': state,
