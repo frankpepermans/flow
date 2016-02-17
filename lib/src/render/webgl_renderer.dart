@@ -12,8 +12,11 @@ import 'package:tuple/tuple.dart';
 import 'package:flow/src/render/renderer.dart';
 import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
+import 'package:flow/src/digest.dart';
 
 import 'package:flow/src/force_print.dart';
+
+const double PADDING = 10.0;
 
 class WebglRenderer<T> extends Renderer {
 
@@ -50,7 +53,6 @@ class WebglRenderer<T> extends Renderer {
       .listen((Tuple2<int, int> tuple) {
         canvas.width = math.max(tuple.item1, canvas.width);
         canvas.height = math.max(tuple.item2, canvas.height);
-      print('${canvas.width}:${canvas.height}');
       });
   }
 
@@ -75,36 +77,33 @@ class WebglRenderer<T> extends Renderer {
     return new Tuple2<double, double>(offsetX, offsetY);
   }
 
-  void invalidate(Iterable<Map<String, dynamic>> data) {
+  void invalidate(Iterable<RenderState<T>> data) {
     final Map<xl.Sprite, xl.DisplayObjectContainer> parentMap = <xl.Sprite, xl.DisplayObjectContainer>{};
     final Map<xl.Sprite, Tuple2<double, double>> offsetTable = <xl.Sprite, Tuple2<double, double>>{};
-    final Map<NodeData<T>, Map<String, dynamic>> rootItems = <NodeData<T>, Map<String, dynamic>>{};
+    final Map<NodeData<T>, RenderState<T>> rootItems = <NodeData<T>, RenderState<T>>{};
 
-    data.forEach((Map<String, dynamic> entry) {
-      final NodeData<T> nodeData = entry['self'];
-      final NodeState state = entry['state'];
-      final NodeData<T> parent = entry['parent'];
-      final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry['childPos'];
-      final bool isRoot = parent.data == null;
+    data.forEach((RenderState<T> entry) {
+      final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry.childData;
+      final bool isRoot = entry.parentNodeData.data == null;
       xl.Point coords;
 
-      print(entry);
+      fprint(entry);
 
-      if (isRoot) rootItems[nodeData] = entry;
+      if (isRoot) rootItems[entry.nodeData] = entry;
 
-      if (!isRoot && !_sprites.containsKey(parent)) _sprites[parent] = new DebugSprite();
-      if (!_sprites.containsKey(nodeData)) _sprites[nodeData] = new DebugSprite();
+      if (!isRoot && !_sprites.containsKey(entry.parentNodeData)) _sprites[entry.parentNodeData] = new DebugSprite();
+      if (!_sprites.containsKey(entry.nodeData)) _sprites[entry.nodeData] = new DebugSprite();
       if (childPos != null && !_sprites.containsKey(childPos.item1)) _sprites[childPos.item1] = new DebugSprite();
 
-      final DebugSprite sprite = _sprites[nodeData];
-      final xl.DisplayObjectContainer container = isRoot ? topContainer : _sprites[parent];
+      final DebugSprite sprite = _sprites[entry.nodeData];
+      final xl.DisplayObjectContainer container = isRoot ? topContainer : _sprites[entry.parentNodeData];
       final DebugSprite child = (childPos != null) ? _sprites[childPos.item1] : null;
 
       parentMap[sprite] = container;
 
       if (childPos != null) {
-        final double dw = childPos.item5.width - 20;
-        final double dh = childPos.item5.height - 20;
+        final double dw = childPos.item5.width - PADDING;
+        final double dh = childPos.item5.height - PADDING;
 
         child.onMouseClick.listen((_) {
           childPos.item1.node.state$ctrl.add(new NodeState(
@@ -126,7 +125,7 @@ class WebglRenderer<T> extends Renderer {
           ..onUpdate = () {
             child.draw(dw, dh);
 
-            coords = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (state.height - 20) / 2)));
+            coords = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
 
             child.graphics.beginPath();
             child.graphics.moveTo(.0, -dh/2);
@@ -141,58 +140,54 @@ class WebglRenderer<T> extends Renderer {
       container.addChild(sprite);
     });
 
-    final List<Map<String, dynamic>> rootItemValues = rootItems.values.toList();
+    final List<RenderState<T>> rootItemValues = rootItems.values.toList();
 
-    rootItemValues.sort((Map<String, dynamic> entryA, Map<String, dynamic> entryB) => entryA['state'].childIndex.compareTo(entryB['state'].childIndex));
+    rootItemValues.sort((RenderState<T> entryA, RenderState<T> entryB) => entryA.state.childIndex.compareTo(entryB.state.childIndex));
 
     double xOffset = .0;
     int childIndex = -1;
 
-    rootItemValues.forEach((Map<String, dynamic> entry) {
-      final DebugSprite sprite = _sprites[entry['self']];
-      final NodeState state = entry['state'];
+    rootItemValues.forEach((RenderState<T> entry) {
+      final DebugSprite sprite = _sprites[entry.nodeData];
 
-      if (state.childIndex != childIndex) {
-        offsetTable[sprite] = new Tuple2<double, double>(xOffset + state.actualWidth / 2, state.height / 2);
+      if (entry.state.childIndex != childIndex) {
+        offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
 
         renderLoop.juggler.addTween(sprite, 1.3)
-          ..animate.x.to(xOffset + state.actualWidth / 2)
-          ..animate.y.to(state.height / 2);
+          ..animate.x.to(xOffset + entry.state.actualWidth / 2)
+          ..animate.y.to(entry.state.height / 2);
 
-        final double dw = state.width - 20;
-        final double dh = state.height - 20;
+        final double dw = entry.state.width - PADDING;
+        final double dh = entry.state.height - PADDING;
 
         sprite.draw(dw, dh);
 
-        xOffset += state.actualWidth;
+        xOffset += entry.state.actualWidth;
 
-        childIndex = state.childIndex;
+        childIndex = entry.state.childIndex;
       }
     });
 
-    data.forEach((Map<String, dynamic> entry) {
-      final NodeData<T> nodeData = entry['self'];
-      final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry['childPos'];
-      final Tuple2<double, double> selfOffset = calculateOffset(nodeData, parentMap, offsetTable);
+    data.forEach((RenderState<T> entry) {
+      final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, parentMap, offsetTable);
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;
 
-      if (childPos !=  null) {
-        offsetX += childPos.item2 + childPos.item5.width/2;
-        offsetY += childPos.item3 + childPos.item5.height/2;
+      if (entry.childData !=  null) {
+        offsetX += entry.childData.item2 + entry.childData.item5.width/2;
+        offsetY += entry.childData.item3 + entry.childData.item5.height/2;
       }
 
       screenSize$ctrl.add(new Tuple2<int, int>(offsetX.ceil(), offsetY.ceil()));
     });
 
-    rootItemValues.forEach((Map<String, dynamic> entry) {
-      final DebugSprite sprite = _sprites[entry['self']];
-      final NodeState state = entry['state'];
+    rootItemValues.forEach((RenderState<T> entry) {
+      final DebugSprite sprite = _sprites[entry.nodeData];
 
-      if (state.childIndex != childIndex) {
-        final double dw = state.actualWidth - 20;
-        final double dh = state.actualHeight - 20;
+      if (entry.state.childIndex != childIndex) {
+        final double dw = entry.state.actualWidth - PADDING;
+        final double dh = entry.state.actualHeight - PADDING;
 
-        childIndex = state.childIndex;
+        childIndex = entry.state.childIndex;
 
         screenSize$ctrl.add(new Tuple2<int, int>((sprite.x + dw/2).ceil(), (sprite.y + dh/2).ceil()));
       }

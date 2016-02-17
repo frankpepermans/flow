@@ -96,8 +96,8 @@ class Node {
 
     if (GEN == null) GEN = _gen();
 
-    _widthController.add(Node.GEN.elementAt(Node.GEN_I++));
-    _heightController.add(Node.GEN.elementAt(Node.GEN_I++));
+    _widthController.add(40.0);
+    _heightController.add(200.0);
 
     // mock async content loaded
     /*new Timer.periodic(new Duration(milliseconds: 1000), (_) {

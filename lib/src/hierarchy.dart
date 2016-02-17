@@ -84,13 +84,7 @@ class Hierarchy<T> {
           newNodeData.children$,
           rx.observable(newNodeData.childPosition$).startWith([null])
         ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos) {
-          return new Digestable(quiver.hash2(newNodeData, childPos?.item1), {
-            'self': newNodeData,
-            'state': state,
-            'parent': parent,
-            'children': children,
-            'childPos': childPos
-          });
+          return new Digestable(quiver.hash2(newNodeData, childPos?.item1), new RenderState<T>(newNodeData, state, parent, children, childPos));
         }).listen(_digest);
 
         newNodeData.init();
@@ -132,7 +126,7 @@ class Hierarchy<T> {
     _currentDigest.append(digestable);
 
     if (_currentDigestFuture == null) {
-      final Completer<Map<int, Map<String, dynamic>>> completer = new Completer<Map<int, Map<String, dynamic>>>();
+      final Completer<Map<int, RenderState<T>>> completer = new Completer<Map<int, RenderState<T>>>();
 
       new Timer(const Duration(milliseconds: 30), () {
         completer.complete(_currentDigest.flush());
@@ -145,7 +139,7 @@ class Hierarchy<T> {
     }
   }
 
-  void _render(Map<int, Map<String, dynamic>> data) {
+  void _render(Map<int, RenderState<T>> data) {
     print('NEW LOOP');
     renderer.invalidate(data.values);
   }
