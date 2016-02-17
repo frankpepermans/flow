@@ -76,7 +76,7 @@ class Node {
     size$ctrl = new StreamController<Tuple2<double, double>>();
 
     final rx.Observable<NodeState> combinedState$ = new rx.Observable<NodeState>.combineLatest(
-      <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, rx.observable(_recursiveHeightController.stream).max()],
+      <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, _recursiveHeightController.stream],
       (String className, bool isOpen, int childIndex, double width, double height, double recursiveWidth, double recursiveHeight)
         => new NodeState(className, isOpen, childIndex, width, height, recursiveWidth, recursiveHeight));
 
@@ -89,7 +89,9 @@ class Node {
     _heightController.add(.0);
     _recursiveWidthController.add(.0);
     _recursiveHeightController.add(.0);
+  }
 
+  void init() {
     final math.Random R = new math.Random();
 
     if (GEN == null) GEN = _gen();
@@ -97,13 +99,11 @@ class Node {
     _widthController.add(Node.GEN.elementAt(Node.GEN_I++));
     _heightController.add(Node.GEN.elementAt(Node.GEN_I++));
 
-
-
     // mock async content loaded
-    new Timer.periodic(new Duration(milliseconds: 1000), (_) {
+    /*new Timer.periodic(new Duration(milliseconds: 1000), (_) {
       _widthController.add(R.nextDouble() * 200.0 + 50.0);
       _heightController.add(R.nextDouble() * 200.0 + 50.0);
-    });
+    });*/
   }
 
   static Iterable<double> GEN;

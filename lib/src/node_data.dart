@@ -65,7 +65,7 @@ class NodeData<T> {
                 for (int i=0; i<len; i++) {
                   NodeData<T> nodeData = children.elementAt(i);
 
-                  nodeData.node.state$.listen((NodeState childState) {
+                  nodeData.node.state$.distinct((NodeState stateA, NodeState stateB) => stateA.equals(stateB)).listen((NodeState childState) {
                     childStates[i] = childState;
 
                     childStates$.add(new UnmodifiableListView<NodeState>(childStates));

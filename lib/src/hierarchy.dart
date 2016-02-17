@@ -49,6 +49,7 @@ class Hierarchy<T> {
       final List<NodeData<T>> modifier = list.toList();
 
       if (tuple.item1) {
+        Node node;
         NodeData<T> newNodeData;
         NodeData<T> parentNodeData;
         bool isOpen = false;
@@ -62,7 +63,8 @@ class Hierarchy<T> {
             return list;
           }
         } else {
-          newNodeData = new NodeData<T>(tuple.item2, new Node(), childCompareHandler);
+          node = new Node();
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler);
 
           isOpen = true;
 
@@ -70,7 +72,8 @@ class Hierarchy<T> {
         }
 
         if (parentNodeData != null) {
-          newNodeData = new NodeData<T>(tuple.item2, new Node(), childCompareHandler);
+          node = new Node();
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler);
 
           parentNodeData.addChildSink.add(newNodeData);
         }
@@ -91,6 +94,8 @@ class Hierarchy<T> {
         }).listen(_digest);
 
         newNodeData.init();
+
+        node?.init();
 
         if (tuple.item4 != null) newNodeData.node.className$ctrl.add(tuple.item4);
 
