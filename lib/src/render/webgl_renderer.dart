@@ -119,7 +119,7 @@ class WebglRenderer<T> extends Renderer {
 
         offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
-        renderLoop.juggler.addTween(child, 1.3)
+        renderLoop.juggler.addTween(child, .3)
           ..animate.x.to(childPos.item2)
           ..animate.y.to(childPos.item3)
           ..onUpdate = () {
@@ -153,7 +153,7 @@ class WebglRenderer<T> extends Renderer {
       if (entry.state.childIndex != childIndex) {
         offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
 
-        renderLoop.juggler.addTween(sprite, 1.3)
+        renderLoop.juggler.addTween(sprite, .3)
           ..animate.x.to(xOffset + entry.state.actualWidth / 2)
           ..animate.y.to(entry.state.height / 2);
 

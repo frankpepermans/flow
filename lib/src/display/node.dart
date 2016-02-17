@@ -100,10 +100,10 @@ class Node {
     _heightController.add(200.0);
 
     // mock async content loaded
-    /*new Timer.periodic(new Duration(milliseconds: 1000), (_) {
-      _widthController.add(R.nextDouble() * 200.0 + 50.0);
-      _heightController.add(R.nextDouble() * 200.0 + 50.0);
-    });*/
+    new Timer.periodic(new Duration(milliseconds: 600), (_) {
+      _widthController.add(R.nextDouble() * 60.0 + 20.0);
+      _heightController.add(R.nextDouble() * 150.0 + 50.0);
+    });
   }
 
   static Iterable<double> GEN;

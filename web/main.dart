@@ -1,48 +1,27 @@
-import 'dart:html' as html;
-
-import 'package:stagexl/stagexl.dart' as xl;
+import 'dart:math' as math;
 
 import 'package:flow/flow.dart';
 
 import 'package:flow/src/render/webgl_renderer.dart';
 
 void main() {
-  WebglRenderer<String> renderer = new WebglRenderer<String>('#stage');
-  Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+  final WebglRenderer<String> renderer = new WebglRenderer<String>('#stage');
+  final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+  final math.Random R = new math.Random();
 
-  hierarchy.add('B', parentData: 'A');
-  hierarchy.add('C', parentData: 'A');
-  hierarchy.add('D', parentData: 'C');
   hierarchy.add('A', className: 'top-level-node');
-  //renderer.remove('C');
-  hierarchy.add('E', parentData: 'A');
-  hierarchy.add('F', parentData: 'A');
-  hierarchy.add('G', parentData: 'C');
-  hierarchy.add('H', parentData: 'B');
-  hierarchy.add('I', parentData: 'B');
-  hierarchy.add('J', parentData: 'D');
-  hierarchy.add('K', parentData: 'D');
-  hierarchy.add('L', parentData: 'B');
-  hierarchy.add('M', parentData: 'E');
-  hierarchy.add('N', parentData: 'F');
-  hierarchy.add('O', parentData: 'G');
-  hierarchy.add('P', parentData: 'H');
-  hierarchy.add('Q', parentData: 'I');
-  hierarchy.add('R', parentData: 'I');
-  hierarchy.add('S', parentData: 'I');
-  hierarchy.add('T', parentData: 'J');
-  hierarchy.add('U', parentData: 'J');
-  hierarchy.add('V', parentData: 'K');
-  hierarchy.add('W', parentData: 'L');
-  hierarchy.add('X', parentData: 'M');
-  hierarchy.add('Y', parentData: 'N');
-  hierarchy.add('Z', parentData: 'N');
 
+  _addRandomChildren(hierarchy, 'A', 0);
+}
 
+void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {
+  final math.Random R = new math.Random();
+  final int len = R.nextInt(3) + 1;
 
-  /*
-  A F
-  B C E
-    D
-   */
+  for (int i=0; i<len; i++) {
+    String next = R.nextInt(0xffffff).toString();
+    hierarchy.add(next, parentData: parent);
+
+    if (level < 5) _addRandomChildren(hierarchy, next, level + 1);
+  }
 }
