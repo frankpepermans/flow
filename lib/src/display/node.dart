@@ -101,8 +101,8 @@ class Node {
 
     // mock async content loaded
     new Timer.periodic(new Duration(milliseconds: 1000), (_) {
-      _widthController.add(Node.GEN.elementAt(Node.GEN_I++));
-      _heightController.add(Node.GEN.elementAt(Node.GEN_I++));
+      _widthController.add(R.nextDouble() * 200.0 + 50.0);
+      _heightController.add(R.nextDouble() * 200.0 + 50.0);
     });
   }
 

@@ -86,7 +86,7 @@ class NodeData<T> {
               _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
               node.recursiveWidth$ctrl.add(tuple.item4.item1);
-              node.recursiveHeight$ctrl.add(tuple.item4.item2);
+              //node.recursiveHeight$ctrl.add(tuple.item4.item2);
 
               tuple.item1.node.recursiveHeight$ctrl.add(tuple.item4.item2);
             });

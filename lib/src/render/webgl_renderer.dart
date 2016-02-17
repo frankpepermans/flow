@@ -99,7 +99,7 @@ class WebglRenderer<T> extends Renderer {
           };
 
         child.draw(dw, dh);
-        child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
+        //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
 
         coords = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (state.height - 20) / 2)));
 
@@ -108,12 +108,6 @@ class WebglRenderer<T> extends Renderer {
         child.graphics.lineTo(coords.x, coords.y);
         child.graphics.strokeColor(xl.Color.Red);
         child.graphics.closePath();
-
-        stage.onEnterFrame.take(1).listen((_) {
-          coords = sprite.localToGlobal(new xl.Point(childPos.item2 + childPos.item5.width/2, childPos.item3 + childPos.item5.height/2));
-
-          screenSize$ctrl.add(new Tuple2<int, int>(coords.x.ceil(), coords.y.ceil()));
-        });
       }
 
       container.addChild(sprite);
@@ -138,15 +132,36 @@ class WebglRenderer<T> extends Renderer {
         xOffset += state.actualWidth;
 
         childIndex = state.childIndex;
-
-        stage.onEnterFrame.take(1).listen((_) {
-          screenSize$ctrl.add(new Tuple2<int, int>((sprite.x + dw/2).ceil(), (sprite.y + dh/2).ceil()));
-        });
       }
     });
 
-  }
+    data.forEach((Map<String, dynamic> entry) {
+      final NodeData<T> nodeData = entry['self'];
+      final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry['childPos'];
 
+      final DebugSprite sprite = _sprites[nodeData];
+
+      if (childPos != null) {
+        final xl.Point coords = sprite.localToGlobal(new xl.Point(childPos.item2 + childPos.item5.width/2, childPos.item3 + childPos.item5.height/2));
+
+        screenSize$ctrl.add(new Tuple2<int, int>(coords.x.ceil(), coords.y.ceil()));
+      }
+    });
+
+    rootItems.forEach((Map<String, dynamic> entry) {
+      final DebugSprite sprite = _sprites[entry['self']];
+      final NodeState state = entry['state'];
+
+      if (state.childIndex != childIndex) {
+        final double dw = state.width - 20;
+        final double dh = state.height - 20;
+
+        childIndex = state.childIndex;
+
+        screenSize$ctrl.add(new Tuple2<int, int>((sprite.x + dw/2).ceil(), (sprite.y + dh/2).ceil()));
+      }
+    });
+  }
 }
 
 class DebugSprite extends xl.Sprite {
