@@ -10,6 +10,8 @@ import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
 
 import 'package:flow/src/render/renderer.dart';
+import 'package:flow/src/render/item_renderer.dart';
+import 'package:flow/src/render/webgl_item_renderer.dart';
 import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
@@ -19,8 +21,6 @@ import 'package:flow/src/force_print.dart';
 const double PADDING = 10.0;
 
 class WebglRenderer<T> extends Renderer {
-
-  final Map<NodeData<T>, DebugSprite> _sprites = <NodeData<T>, DebugSprite>{};
 
   html.CanvasElement canvas;
   xl.Stage stage;
@@ -56,8 +56,10 @@ class WebglRenderer<T> extends Renderer {
       });
   }
 
-  Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<xl.Sprite, xl.DisplayObjectContainer> parentMap, Map<xl.Sprite, Tuple2<double, double>> offsetTable) {
-    final DebugSprite sprite = _sprites[nodeData];
+  ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();
+
+  Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable) {
+    final ItemRenderer<T> sprite = nodeData.itemRenderer;
     final Tuple2<double, double> localOffset = offsetTable[sprite];
 
     xl.DisplayObjectContainer parent = parentMap[sprite];
@@ -78,26 +80,21 @@ class WebglRenderer<T> extends Renderer {
   }
 
   void invalidate(Iterable<RenderState<T>> data) {
-    final Map<xl.Sprite, xl.DisplayObjectContainer> parentMap = <xl.Sprite, xl.DisplayObjectContainer>{};
-    final Map<xl.Sprite, Tuple2<double, double>> offsetTable = <xl.Sprite, Tuple2<double, double>>{};
+    final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = <ItemRenderer<T>, xl.DisplayObjectContainer>{};
+    final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = <ItemRenderer<T>, Tuple2<double, double>>{};
     final Map<NodeData<T>, RenderState<T>> rootItems = <NodeData<T>, RenderState<T>>{};
 
     data.forEach((RenderState<T> entry) {
       final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry.childData;
       final bool isRoot = entry.parentNodeData.data == null;
-      xl.Point coords;
 
       fprint(entry);
 
       if (isRoot) rootItems[entry.nodeData] = entry;
 
-      if (!isRoot && !_sprites.containsKey(entry.parentNodeData)) _sprites[entry.parentNodeData] = new DebugSprite();
-      if (!_sprites.containsKey(entry.nodeData)) _sprites[entry.nodeData] = new DebugSprite();
-      if (childPos != null && !_sprites.containsKey(childPos.item1)) _sprites[childPos.item1] = new DebugSprite();
-
-      final DebugSprite sprite = _sprites[entry.nodeData];
-      final xl.DisplayObjectContainer container = isRoot ? topContainer : _sprites[entry.parentNodeData];
-      final DebugSprite child = (childPos != null) ? _sprites[childPos.item1] : null;
+      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
+      final xl.DisplayObjectContainer container = isRoot ? topContainer : entry.parentNodeData.itemRenderer;
+      final WebglItemRenderer<T> child = (childPos != null) ? childPos.item1.itemRenderer : null;
 
       parentMap[sprite] = container;
 
@@ -123,15 +120,12 @@ class WebglRenderer<T> extends Renderer {
           ..animate.x.to(childPos.item2)
           ..animate.y.to(childPos.item3)
           ..onUpdate = () {
+            final xl.Point pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
+
+            child.clear();
             child.draw(dw, dh);
-
-            coords = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
-
-            child.graphics.beginPath();
-            child.graphics.moveTo(.0, -dh/2);
-            child.graphics.lineTo(coords.x, coords.y);
-            child.graphics.strokeColor(xl.Color.Red);
-            child.graphics.closePath();
+            child.connect(.0, -dh/2, pos.x, pos.y);
+            child.setData(childPos.item1.data);
           };
 
         //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
@@ -148,7 +142,7 @@ class WebglRenderer<T> extends Renderer {
     int childIndex = -1;
 
     rootItemValues.forEach((RenderState<T> entry) {
-      final DebugSprite sprite = _sprites[entry.nodeData];
+      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
 
       if (entry.state.childIndex != childIndex) {
         offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
@@ -160,7 +154,9 @@ class WebglRenderer<T> extends Renderer {
         final double dw = entry.state.width - PADDING;
         final double dh = entry.state.height - PADDING;
 
+        sprite.clear();
         sprite.draw(dw, dh);
+        sprite.setData(entry.nodeData.data);
 
         xOffset += entry.state.actualWidth;
 
@@ -181,7 +177,7 @@ class WebglRenderer<T> extends Renderer {
     });
 
     rootItemValues.forEach((RenderState<T> entry) {
-      final DebugSprite sprite = _sprites[entry.nodeData];
+      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
 
       if (entry.state.childIndex != childIndex) {
         final double dw = entry.state.actualWidth - PADDING;
@@ -193,29 +189,4 @@ class WebglRenderer<T> extends Renderer {
       }
     });
   }
-}
-
-class DebugSprite extends xl.Sprite {
-
-  xl.TextField textField;
-
-  DebugSprite() {
-    textField = new xl.TextField('');
-
-    addChild(textField);
-  }
-
-  void setText(String text) {
-    textField.text = text;
-  }
-
-  void draw(double w, double h) {
-    graphics.clear();
-    graphics.beginPath();
-    graphics.rect(-w/2, -h/2, w, h);
-    graphics.strokeColor(xl.Color.Red);
-    graphics.fillColor(xl.Color.LightGray);
-    graphics.closePath();
-  }
-
 }

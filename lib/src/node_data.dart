@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flow/src/force_print.dart' show fprint;
 import 'package:flow/src/display/node.dart';
+import 'package:flow/src/render/item_renderer.dart';
 
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
@@ -32,11 +33,12 @@ class NodeData<T> {
   final StreamController<NodeData<T>> _parent$ctrl = new StreamController<NodeData<T>>.broadcast();
   final StreamController<UnmodifiableListView<NodeData<T>>> _children$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
 
+  final ItemRenderer<T> itemRenderer;
   final T data;
   final Node node;
   final ChildCompareHandler childCompareHandler;
 
-  NodeData(this.data, this.node, this.childCompareHandler);
+  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer);
 
   void init() {
     new rx.Observable<UnmodifiableListView<NodeData<T>>>.zip(

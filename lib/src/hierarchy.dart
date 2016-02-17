@@ -8,6 +8,7 @@ import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
 import 'package:flow/src/render/renderer.dart';
+import 'package:flow/src/render/item_renderer.dart';
 
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
@@ -20,9 +21,9 @@ class Hierarchy<T> {
 
   final Renderer<T> renderer;
 
-  final StreamController<Tuple3<T, T, String>> _addNodeData$ctrl = new StreamController<Tuple3<T, T, String>>();
+  final StreamController<Tuple4<T, T, String, ItemRenderer<T>>> _addNodeData$ctrl = new StreamController<Tuple4<T, T, String, ItemRenderer<T>>>();
   final StreamController<T> _removeNodeData$ctrl = new StreamController<T>();
-  final StreamController<Tuple4<bool, T, T, String>> _retryNodeData$ctrl = new StreamController<Tuple4<bool, T, T, String>>();
+  final StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>> _retryNodeData$ctrl = new StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>>();
   final StreamController<UnmodifiableListView<NodeData<T>>> _nodeData$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
 
   final StreamController<NodeState> node$ctrl = new StreamController<NodeState>();
@@ -35,23 +36,24 @@ class Hierarchy<T> {
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
-    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler)..init();
+    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null)..init();
 
     new rx.Observable.zip(
     [
-      new rx.Observable.merge(<Stream<Tuple4<bool, T, T, String>>>[
-        _addNodeData$ctrl.stream.map((Tuple3<T, T, String> tuple) => new Tuple4<bool, T, T, String>(true, tuple.item1, tuple.item2, tuple.item3)),
-        _removeNodeData$ctrl.stream.map((T data) => new Tuple4<bool, T, T, String>(false, data, null, null)),
+      new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>>[
+        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)),
+        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)),
         _retryNodeData$ctrl.stream
       ]),
       _nodeData$ctrl.stream
-    ], (Tuple4<bool, T, T, String> tuple, UnmodifiableListView<NodeData<T>> list) {
+    ], (Tuple5<bool, T, T, String, ItemRenderer<T>> tuple, UnmodifiableListView<NodeData<T>> list) {
       final List<NodeData<T>> modifier = list.toList();
 
       if (tuple.item1) {
         Node node;
         NodeData<T> newNodeData;
         NodeData<T> parentNodeData;
+        ItemRenderer<T> itemRenderer;
         bool isOpen = false;
 
         if (tuple.item3 != null) {
@@ -64,7 +66,7 @@ class Hierarchy<T> {
           }
         } else {
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance());
 
           isOpen = true;
 
@@ -73,7 +75,7 @@ class Hierarchy<T> {
 
         if (parentNodeData != null) {
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance());
 
           parentNodeData.addChildSink.add(newNodeData);
         }
@@ -116,7 +118,7 @@ class Hierarchy<T> {
     _nodeData$ctrl.add(new UnmodifiableListView<NodeData<T>>(const []));
   }
 
-  void add(T data, {T parentData, String className}) => _addNodeData$ctrl.add(new Tuple3<T, T, String>(data, parentData, className));
+  void add(T data, {T parentData, String className, ItemRenderer<T> itemRenderer}) => _addNodeData$ctrl.add(new Tuple4<T, T, String, ItemRenderer<T>>(data, parentData, className, itemRenderer));
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
 
