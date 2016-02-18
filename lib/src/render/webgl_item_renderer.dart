@@ -13,8 +13,12 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   WebglItemRenderer() : super() {
     addChild(container);
 
+    bool isOpen = false;
+
     container.onMouseClick.listen((_) {
-      resize$sink.add(new Tuple2<double, double>(300.0, 300.0));
+      resize$sink.add(isOpen ? const Tuple2<double, double>(40.0, 40.0) : const Tuple2<double, double>(80.0, 80.0));
+
+      isOpen = !isOpen;
     });
   }
 
