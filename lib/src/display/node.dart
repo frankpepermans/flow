@@ -50,15 +50,16 @@ class NodeState {
 
 class Node {
 
-  Sink<String> get className$ctrl => _classNameController;
-  Sink<bool> get isOpen$ctrl => _isOpenController;
-  Sink<int> get childIndex$ctrl => _childIndexController;
-  Sink<double> get recursiveWidth$ctrl => _recursiveWidthController;
-  Sink<double> get recursiveHeight$ctrl => _recursiveHeightController;
+  Sink<String> get className$ctrl => _classNameController.sink;
+  Sink<bool> get isOpen$ctrl => _isOpenController.sink;
+  Sink<int> get childIndex$ctrl => _childIndexController.sink;
+  Sink<double> get width$ctrl => _widthController.sink;
+  Sink<double> get height$ctrl => _heightController.sink;
+  Sink<double> get recursiveWidth$ctrl => _recursiveWidthController.sink;
+  Sink<double> get recursiveHeight$ctrl => _recursiveHeightController.sink;
 
   Stream<NodeState> state$;
   Sink<NodeState> state$ctrl;
-  StreamController<Tuple2<double, double>> size$ctrl;
 
   StreamController<String> _classNameController = new StreamController<String>();
   StreamController<bool> _isOpenController = new StreamController<bool>();
@@ -73,7 +74,6 @@ class Node {
 
     state$ = controller.foreign.stream.asBroadcastStream();
     state$ctrl = controller.local.sink;
-    size$ctrl = new StreamController<Tuple2<double, double>>();
 
     final rx.Observable<NodeState> combinedState$ = new rx.Observable<NodeState>.combineLatest(
       <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, _recursiveHeightController.stream],
@@ -97,14 +97,14 @@ class Node {
     if (GEN == null) GEN = _gen();
 
     _widthController.add(40.0);
-    _heightController.add(200.0);GEN_I++;
+    _heightController.add(40.0);GEN_I++;
 
     // mock async content loaded
-    if (GEN_I == 10)
-    new Timer.periodic(new Duration(milliseconds: 600), (_) {
+    //if (GEN_I == 10)
+    /*new Timer.periodic(new Duration(milliseconds: 600), (_) {
       _widthController.add(R.nextDouble() * 60.0 + 20.0);
       _heightController.add(R.nextDouble() * 250.0 + 50.0);
-    });
+    });*/
   }
 
   static Iterable<double> GEN;

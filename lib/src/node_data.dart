@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flow/src/force_print.dart' show fprint;
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/render/item_renderer.dart';
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
@@ -33,14 +34,22 @@ class NodeData<T> {
   final StreamController<NodeData<T>> _parent$ctrl = new StreamController<NodeData<T>>.broadcast();
   final StreamController<UnmodifiableListView<NodeData<T>>> _children$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
 
+  final HierarchyOrientation orientation;
   final ItemRenderer<T> itemRenderer;
   final T data;
   final Node node;
   final ChildCompareHandler childCompareHandler;
 
-  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer);
+  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.orientation);
 
   void init() {
+    if (itemRenderer != null) {
+      itemRenderer.resize$.listen((Tuple2<double, double> tuple) {
+        node.width$ctrl.add(tuple.item1);
+        node.height$ctrl.add(tuple.item2);
+      });
+    }
+
     new rx.Observable<UnmodifiableListView<NodeData<T>>>.zip(
       <Stream>[
         new rx.Observable.merge(<Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>>[
@@ -77,20 +86,38 @@ class NodeData<T> {
                 return childStates$.stream;
               })
             ], (NodeState state, NodeState childState, UnmodifiableListView<NodeState> childrenStates) {
-              final Tuple2<double, double> dwh = childrenStates.fold(new Tuple2<double, double>(.0, state.actualHeight), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.actualHeight)));
-              final double y = dwh.item2;
-              double x = -dwh.item1/2 + childState.actualWidth/2;
+              Tuple2<double, double> dwh;
+              double x, y;
 
-              for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth;
+              if (orientation == HierarchyOrientation.VERTICAL) {
+                dwh = childrenStates.fold(new Tuple2<double, double>(.0, state.actualHeight), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.actualHeight)));
+
+                x = -dwh.item1/2 + childState.actualWidth/2;
+                y = dwh.item2;
+
+                for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth;
+              } else {
+                dwh = childrenStates.fold(new Tuple2<double, double>(state.actualWidth, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(math.max(prevValue.item1, currValue.actualWidth), prevValue.item2 + currValue.actualHeight));
+
+                x = dwh.item1;
+                y = -dwh.item2/2 + childState.actualHeight/2;
+
+                for (int i=0; i<childState.childIndex; i++) y += childrenStates[i].actualHeight;
+              }
 
               return new Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, x, y, dwh, childrenStates, childState);
             }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState> tuple) {
               _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
-              node.recursiveWidth$ctrl.add(tuple.item4.item1);
-              //node.recursiveHeight$ctrl.add(tuple.item4.item2);
+              if (orientation == HierarchyOrientation.VERTICAL) {
+                node.recursiveWidth$ctrl.add(tuple.item4.item1);
 
-              tuple.item1.node.recursiveHeight$ctrl.add(tuple.item4.item2);
+                tuple.item1.node.recursiveHeight$ctrl.add(tuple.item4.item2);
+              } else {
+                node.recursiveHeight$ctrl.add(tuple.item4.item2);
+
+                tuple.item1.node.recursiveWidth$ctrl.add(tuple.item4.item1);
+              }
             });
             break;
           case NodeDataChildOperation.REMOVE:

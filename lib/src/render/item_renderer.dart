@@ -38,15 +38,22 @@ class ItemRendererState<T> {
 
 abstract class ItemRenderer<T> {
 
+  bool _isInitialized = false;
+
+  bool get isInitialized => _isInitialized;
+  Stream<Tuple2<double, double>> get resize$ => _resize$ctrl.stream;
+
   Sink<T> get data$sink => _data$ctrl.sink;
   Sink<Tuple4<double, double, double, double>> get connector$sink => _connector$ctrl.sink;
   Sink<Tuple2<double, double>> get size$sink => _size$ctrl.sink;
+  Sink<Tuple2<double, double>> get resize$sink => _resize$ctrl.sink;
 
   Stream<bool> get renderingRequired$ => _renderingRequired$ctrl.stream;
 
   final StreamController<T> _data$ctrl = new StreamController<T>();
   final StreamController<Tuple4<double, double, double, double>> _connector$ctrl = new StreamController<Tuple4<double, double, double, double>>();
-  final StreamController<Tuple2<double, double>> _size$ctrl = new StreamController<Tuple2<double, double>>();
+  final StreamController<Tuple2<double, double>> _size$ctrl = new StreamController<Tuple2<double, double>>.broadcast();
+  final StreamController<Tuple2<double, double>> _resize$ctrl = new StreamController<Tuple2<double, double>>.broadcast();
   final StreamController<bool> _renderingRequired$ctrl = new StreamController<bool>();
 
   int renderCount = 0;
@@ -63,6 +70,8 @@ abstract class ItemRenderer<T> {
 
         _renderingRequired$ctrl.add(true);
       });
+
+    _isInitialized = true;
   }
 
   void update(ItemRendererState<T> state);

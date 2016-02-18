@@ -118,29 +118,26 @@ class WebglRenderer<T> extends Renderer {
         final double dw = childPos.item5.width - PADDING;
         final double dh = childPos.item5.height - PADDING;
 
-        child.onMouseClick.listen((_) {
-          childPos.item1.node.state$ctrl.add(new NodeState(
-              childPos.item5.className,
-              childPos.item5.isOpen,
-              childPos.item5.childIndex,
-              childPos.item5.width,
-              childPos.item5.height,
-              childPos.item5.recursiveWidth,
-              childPos.item5.recursiveHeight
-          ));
-        });
-
         offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
         renderLoop.juggler.addTween(child, .3)
           ..animate.x.to(childPos.item2)
           ..animate.y.to(childPos.item3)
           ..onUpdate = () {
-            final xl.Point pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
+            xl.Point pos;
 
             child.data$sink.add(childPos.item1.data);
             child.size$sink.add(new Tuple2<double, double>(dw, dh));
-            child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2, pos.x, pos.y));
+
+            if (orientation == HierarchyOrientation.VERTICAL) {
+              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
+
+              child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2, pos.x, pos.y));
+            } else {
+              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point((entry.state.width - PADDING) / 2, .0)));
+
+              child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2, .0, pos.x, pos.y));
+            }
           };
 
         //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
@@ -160,11 +157,19 @@ class WebglRenderer<T> extends Renderer {
       final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
 
       if (entry.state.childIndex != childIndex) {
-        offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
+        if (orientation == HierarchyOrientation.VERTICAL) {
+          offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
 
-        renderLoop.juggler.addTween(sprite, .3)
-          ..animate.x.to(xOffset + entry.state.actualWidth / 2)
-          ..animate.y.to(entry.state.height / 2);
+          renderLoop.juggler.addTween(sprite, .3)
+            ..animate.x.to(xOffset + entry.state.actualWidth / 2)
+            ..animate.y.to(entry.state.height / 2);
+        } else {
+          offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2, xOffset + entry.state.actualHeight / 2);
+
+          renderLoop.juggler.addTween(sprite, .3)
+            ..animate.x.to(entry.state.width / 2)
+            ..animate.y.to(xOffset + entry.state.actualHeight / 2);
+        }
 
         final double dw = entry.state.width - PADDING;
         final double dh = entry.state.height - PADDING;

@@ -17,9 +17,15 @@ import 'package:quiver_hashcode/hashcode.dart' as quiver;
 typedef bool NodeEqualityHandler<T>(T dataA, T dataB);
 typedef int ChildCompareHandler<T>(dataA, dataB);
 
+enum HierarchyOrientation {
+  HORIZONTAL,
+  VERTICAL
+}
+
 class Hierarchy<T> {
 
   final Renderer<T> renderer;
+  final HierarchyOrientation orientation;
 
   final StreamController<Tuple4<T, T, String, ItemRenderer<T>>> _addNodeData$ctrl = new StreamController<Tuple4<T, T, String, ItemRenderer<T>>>();
   final StreamController<T> _removeNodeData$ctrl = new StreamController<T>();
@@ -32,11 +38,13 @@ class Hierarchy<T> {
   Digest _currentDigest;
   Future<Map<int, Map<String, dynamic>>> _currentDigestFuture;
 
-  Hierarchy(this.renderer, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
+  Hierarchy(this.renderer, this.orientation, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
+    renderer.orientation = orientation;
+
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
-    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null)..init();
+    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, orientation)..init();
 
     new rx.Observable.zip(
     [
@@ -67,7 +75,7 @@ class Hierarchy<T> {
         } else {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation);
 
           itemRenderer.init(equalityHandler);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
@@ -80,7 +88,7 @@ class Hierarchy<T> {
         if (parentNodeData != null) {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation);
 
           itemRenderer.init(equalityHandler);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
