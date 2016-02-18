@@ -22,6 +22,10 @@ const double PADDING = 10.0;
 
 class WebglRenderer<T> extends Renderer {
 
+  final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
+  final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
+  final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
+
   html.CanvasElement canvas;
   xl.Stage stage;
   xl.RenderLoop renderLoop;
@@ -42,7 +46,7 @@ class WebglRenderer<T> extends Renderer {
     renderLoop = new xl.RenderLoop();
     screenSize$ctrl = new StreamController<Tuple2<int, int>>();
 
-    stage.renderMode = xl.StageRenderMode.AUTO;
+    stage.renderMode = xl.StageRenderMode.ONCE;
 
     stage.addChild(topContainer);
 
@@ -54,6 +58,15 @@ class WebglRenderer<T> extends Renderer {
         canvas.width = math.max(tuple.item1, canvas.width);
         canvas.height = math.max(tuple.item2, canvas.height);
       });
+
+    new rx.Observable<Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream],
+      (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems) {
+        return new Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>(data, parentMap, offsetTable, rootItems);
+      }).listen(_invalidate);
+
+    _parentMap$ctrl.add(<ItemRenderer<T>, xl.DisplayObjectContainer>{});
+    _offsetTable$ctrl.add(<ItemRenderer<T>, Tuple2<double, double>>{});
+    _rootItems$ctrl.add(<NodeData<T>, RenderState<T>>{});
   }
 
   ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();
@@ -79,16 +92,19 @@ class WebglRenderer<T> extends Renderer {
     return new Tuple2<double, double>(offsetX, offsetY);
   }
 
-  void invalidate(Iterable<RenderState<T>> data) {
-    final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = <ItemRenderer<T>, xl.DisplayObjectContainer>{};
-    final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = <ItemRenderer<T>, Tuple2<double, double>>{};
-    final Map<NodeData<T>, RenderState<T>> rootItems = <NodeData<T>, RenderState<T>>{};
+  void scheduleRender() {
+    stage.renderMode = xl.StageRenderMode.ONCE;
+  }
+
+  void _invalidate(Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>> tuple) {
+    final Iterable<RenderState<T>> data = tuple.item1;
+    final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = tuple.item2;
+    final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = tuple.item3;
+    final Map<NodeData<T>, RenderState<T>> rootItems = tuple.item4;
 
     data.forEach((RenderState<T> entry) {
       final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry.childData;
       final bool isRoot = entry.parentNodeData.data == null;
-
-      fprint(entry);
 
       if (isRoot) rootItems[entry.nodeData] = entry;
 
@@ -122,10 +138,9 @@ class WebglRenderer<T> extends Renderer {
           ..onUpdate = () {
             final xl.Point pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
 
-            child.clear();
-            child.draw(dw, dh);
-            child.connect(.0, -dh/2, pos.x, pos.y);
-            child.setData(childPos.item1.data);
+            child.data$sink.add(childPos.item1.data);
+            child.size$sink.add(new Tuple2<double, double>(dw, dh));
+            child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2, pos.x, pos.y));
           };
 
         //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
@@ -154,9 +169,8 @@ class WebglRenderer<T> extends Renderer {
         final double dw = entry.state.width - PADDING;
         final double dh = entry.state.height - PADDING;
 
-        sprite.clear();
-        sprite.draw(dw, dh);
-        sprite.setData(entry.nodeData.data);
+        sprite.data$sink.add(entry.nodeData.data);
+        sprite.size$sink.add(new Tuple2<double, double>(dw, dh));
 
         xOffset += entry.state.actualWidth;
 
@@ -169,24 +183,11 @@ class WebglRenderer<T> extends Renderer {
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;
 
       if (entry.childData !=  null) {
-        offsetX += entry.childData.item2 + entry.childData.item5.width/2;
-        offsetY += entry.childData.item3 + entry.childData.item5.height/2;
+        offsetX += entry.childData.item2 + entry.childData.item5.actualWidth/2;
+        offsetY += entry.childData.item3 + entry.childData.item5.actualHeight/2;
       }
 
       screenSize$ctrl.add(new Tuple2<int, int>(offsetX.ceil(), offsetY.ceil()));
-    });
-
-    rootItemValues.forEach((RenderState<T> entry) {
-      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
-
-      if (entry.state.childIndex != childIndex) {
-        final double dw = entry.state.actualWidth - PADDING;
-        final double dh = entry.state.actualHeight - PADDING;
-
-        childIndex = entry.state.childIndex;
-
-        screenSize$ctrl.add(new Tuple2<int, int>((sprite.x + dw/2).ceil(), (sprite.y + dh/2).ceil()));
-      }
     });
   }
 }

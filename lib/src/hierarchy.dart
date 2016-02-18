@@ -65,8 +65,12 @@ class Hierarchy<T> {
             return list;
           }
         } else {
+          itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance());
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer);
+
+          itemRenderer.init(equalityHandler);
+          itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
 
           isOpen = true;
 
@@ -74,8 +78,12 @@ class Hierarchy<T> {
         }
 
         if (parentNodeData != null) {
+          itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance());
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer);
+
+          itemRenderer.init(equalityHandler);
+          itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
 
           parentNodeData.addChildSink.add(newNodeData);
         }
@@ -143,7 +151,7 @@ class Hierarchy<T> {
 
   void _render(Map<int, RenderState<T>> data) {
     print('NEW LOOP');
-    renderer.invalidate(data.values);
+    renderer.state$sink.add(data.values);
   }
 
 }

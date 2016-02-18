@@ -97,12 +97,13 @@ class Node {
     if (GEN == null) GEN = _gen();
 
     _widthController.add(40.0);
-    _heightController.add(200.0);
+    _heightController.add(200.0);GEN_I++;
 
     // mock async content loaded
+    if (GEN_I == 10)
     new Timer.periodic(new Duration(milliseconds: 600), (_) {
       _widthController.add(R.nextDouble() * 60.0 + 20.0);
-      _heightController.add(R.nextDouble() * 150.0 + 50.0);
+      _heightController.add(R.nextDouble() * 250.0 + 50.0);
     });
   }
 

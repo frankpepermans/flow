@@ -6,29 +6,22 @@ import 'package:flow/src/render/item_renderer.dart';
 
 class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
-  @override
-  void clear() => graphics.clear();
+  WebglItemRenderer() : super();
 
   @override
-  void draw(double w, double h) {
+  void update(ItemRendererState<T> state) {
+    graphics.clear();
+
     graphics.beginPath();
-    graphics.rect(-w/2, -h/2, w, h);
+    graphics.rect(-state.w/2, -state.h/2, state.w, state.h);
     graphics.strokeColor(xl.Color.Red);
     graphics.fillColor(xl.Color.LightGray);
     graphics.closePath();
-  }
 
-  @override
-  void connect(double fromX, double fromY, double toX, double toY) {
     graphics.beginPath();
-    graphics.moveTo(fromX, fromY);
-    graphics.lineTo(toX, toY);
+    graphics.moveTo(state.connectorFromX, state.connectorFromY);
+    graphics.lineTo(state.connectorToX, state.connectorToY);
     graphics.strokeColor(xl.Color.Red);
     graphics.closePath();
-  }
-
-  @override
-  void invalidateData() {
-    print(data);
   }
 }
