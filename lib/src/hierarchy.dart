@@ -44,7 +44,9 @@ class Hierarchy<T> {
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
-    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, orientation)..init();
+    final Tuple4<double, double, double, double> nodePadding = renderer.getNodePadding();
+
+    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, orientation, nodePadding)..init();
 
     new rx.Observable.zip(
     [
@@ -75,7 +77,7 @@ class Hierarchy<T> {
         } else {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodePadding);
 
           itemRenderer.init(equalityHandler, orientation);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
@@ -88,7 +90,7 @@ class Hierarchy<T> {
         if (parentNodeData != null) {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodePadding);
 
           itemRenderer.init(equalityHandler, orientation);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());

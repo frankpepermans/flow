@@ -9,7 +9,7 @@ import 'package:stagexl/stagexl.dart' as xl;
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
 
-import 'package:flow/src/render/renderer.dart';
+import 'package:flow/src/render/web_renderer.dart';
 import 'package:flow/src/render/item_renderer.dart';
 import 'package:flow/src/render/webgl_item_renderer.dart';
 import 'package:flow/src/node_data.dart';
@@ -18,9 +18,7 @@ import 'package:flow/src/digest.dart';
 
 import 'package:flow/src/force_print.dart';
 
-const double PADDING = 10.0;
-
-class WebglRenderer<T> extends Renderer {
+class WebglRenderer<T> extends WebRenderer<T> {
 
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
   final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
@@ -32,7 +30,7 @@ class WebglRenderer<T> extends Renderer {
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
 
-  WebglRenderer(String selector) {
+  WebglRenderer(String selector) : super() {
     canvas = html.querySelector(selector);
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
@@ -119,8 +117,8 @@ class WebglRenderer<T> extends Renderer {
       parentMap[sprite] = container;
 
       if (childPos != null) {
-        final double dw = childPos.item5.width - PADDING;
-        final double dh = childPos.item5.height - PADDING;
+        final double dw = childPos.item5.width;
+        final double dh = childPos.item5.height;
 
         offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
@@ -134,11 +132,11 @@ class WebglRenderer<T> extends Renderer {
             child.size$sink.add(new Tuple2<double, double>(dw, dh));
 
             if (orientation == HierarchyOrientation.VERTICAL) {
-              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, (entry.state.height - PADDING) / 2)));
+              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, entry.state.height / 2)));
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2, pos.x, pos.y));
             } else {
-              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point((entry.state.width - PADDING) / 2, .0)));
+              pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(entry.state.width / 2, .0)));
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2, .0, pos.x, pos.y));
             }
@@ -175,8 +173,8 @@ class WebglRenderer<T> extends Renderer {
             ..animate.y.to(xOffset + entry.state.actualHeight / 2);
         }
 
-        final double dw = entry.state.width - PADDING;
-        final double dh = entry.state.height - PADDING;
+        final double dw = entry.state.width;
+        final double dh = entry.state.height;
 
         sprite.data$sink.add(entry.nodeData.data);
         sprite.size$sink.add(new Tuple2<double, double>(dw, dh));

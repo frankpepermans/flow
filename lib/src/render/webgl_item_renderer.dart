@@ -28,18 +28,10 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   @override
   void update(ItemRendererState<T> state) {
     final xl.Graphics g = container.graphics;
-    final xl.Graphics h = connector.graphics;
     final double dw = state.w;
     final double dh = state.h;
-    final double fx = state.connectorFromX;
-    final double tx = state.connectorToX;
-    final double fy = state.connectorFromY;
-    final double ty = state.connectorToY;
-    const double offset = 5.0;
-    double o;
 
     g.clear();
-    h.clear();
 
     g.beginPath();
     g.rect(-dw/2, -dh/2, dw, dh);
@@ -47,7 +39,18 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
     g.strokeColor(xl.Color.DarkSlateGray);
     g.fillColor(xl.Color.LightSlateGray);
+  }
 
+  void connect(ItemRendererState<T> state) {
+    final xl.Graphics h = connector.graphics;
+    final double fx = state.connectorFromX;
+    final double tx = state.connectorToX;
+    final double fy = state.connectorFromY;
+    final double ty = state.connectorToY;
+    const double offset = 5.0;
+    double o;
+
+    h.clear();
     h.beginPath();
 
     if (orientation == HierarchyOrientation.VERTICAL) {

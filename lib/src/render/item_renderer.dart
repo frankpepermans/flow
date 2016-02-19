@@ -70,6 +70,7 @@ abstract class ItemRenderer<T> {
       .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) => stateB.equals(stateA, equalityHandler))
       .listen((ItemRendererState<T> state) {
         update(state);
+        connect(state);
 
         _renderingRequired$ctrl.add(true);
       });
@@ -78,4 +79,6 @@ abstract class ItemRenderer<T> {
   }
 
   void update(ItemRendererState<T> state);
+
+  void connect(ItemRendererState<T> state);
 }

@@ -1,6 +1,9 @@
-library flow.render.render;
+library flow.render.renderer;
 
 import 'dart:async';
+import 'dart:html' as html;
+
+import 'package:tuple/tuple.dart';
 
 import 'package:flow/src/digest.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
@@ -20,5 +23,7 @@ abstract class Renderer<T> {
   ItemRenderer<T> newDefaultItemRendererInstance();
 
   void scheduleRender();
+
+  Tuple4<double, double, double, double> getNodePadding();
 
 }

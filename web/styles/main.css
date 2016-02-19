@@ -5,3 +5,7 @@ html, body {
 #stage {
 
 }
+
+.flow-node {
+    padding: 10px;
+}
