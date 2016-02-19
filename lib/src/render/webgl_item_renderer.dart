@@ -16,12 +16,19 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     addChild(connector);
     addChild(container);
 
-    bool isOpen = false;
+    const List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
+      const Tuple2<double, double>(40.0, 40.0),
+      const Tuple2<double, double>(80.0, 80.0),
+      const Tuple2<double, double>(160.0, 160.0)
+    ];
+    int viewIndex = 0;
 
     container.onMouseClick.listen((_) {
-      resize$sink.add(isOpen ? const Tuple2<double, double>(40.0, 40.0) : const Tuple2<double, double>(80.0, 80.0));
+      viewIndex++;
 
-      isOpen = !isOpen;
+      if (viewIndex >= views.length) viewIndex = 0;
+
+      resize$sink.add(views[viewIndex]);
     });
   }
 

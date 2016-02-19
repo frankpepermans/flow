@@ -7,7 +7,9 @@ import 'package:tuple/tuple.dart';
 import 'package:flow/src/render/renderer.dart';
 import 'package:flow/src/render/item_renderer.dart';
 
-export 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
+
+export 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
 class WebRenderer<T> extends Renderer<T> {
 
@@ -29,6 +31,17 @@ class WebRenderer<T> extends Renderer<T> {
         });
       }
     });
+
+    nodeStyle = new NodeStyle(
+      getNodeMargin(),
+      getNodePadding(),
+      getNodeBackgroundColor(),
+      getNodeBorderColor(),
+      getNodeBorderSize(),
+      getConnectorBackgroundColor(),
+      getConnectorWidth(),
+      getConnectorHeight()
+    );
   }
 
   @override

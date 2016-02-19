@@ -52,7 +52,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
-      .listen((Tuple2<int, int> tuple) {print(tuple);
+      .listen((Tuple2<int, int> tuple) {
         canvas.width = math.max(tuple.item1, canvas.width);
         canvas.height = math.max(tuple.item2, canvas.height);
       });
@@ -157,20 +157,21 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
     rootItemValues.forEach((RenderState<T> entry) {
       final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
+      final double borderSize = nodeStyle.borderSize * 2;
 
       if (entry.state.childIndex != childIndex) {
         if (orientation == HierarchyOrientation.VERTICAL) {
-          offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2, entry.state.height / 2);
+          offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2 + borderSize, entry.state.height / 2 + borderSize);
 
           renderLoop.juggler.addTween(sprite, .3)
-            ..animate.x.to(xOffset + entry.state.actualWidth / 2)
-            ..animate.y.to(entry.state.height / 2);
+            ..animate.x.to(xOffset + entry.state.actualWidth / 2 + borderSize)
+            ..animate.y.to(entry.state.height / 2 + borderSize);
         } else {
-          offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2, xOffset + entry.state.actualHeight / 2);
+          offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2 + borderSize, xOffset + entry.state.actualHeight / 2 + borderSize);
 
           renderLoop.juggler.addTween(sprite, .3)
-            ..animate.x.to(entry.state.width / 2)
-            ..animate.y.to(xOffset + entry.state.actualHeight / 2);
+            ..animate.x.to(entry.state.width / 2 + borderSize)
+            ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize);
         }
 
         final double dw = entry.state.width;
@@ -187,12 +188,13 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
     data.where((RenderState<T> entry) => entry.childData !=  null).forEach((RenderState<T> entry) {
       final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, parentMap, offsetTable);
+      final double borderSize = nodeStyle.borderSize * 2;
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;
 
       offsetX += entry.childData.item2 + entry.childData.item5.actualWidth/2;
       offsetY += entry.childData.item3 + entry.childData.item5.actualHeight/2;
 
-      screenSize$ctrl.add(new Tuple2<int, int>(offsetX.ceil(), offsetY.ceil()));
+      screenSize$ctrl.add(new Tuple2<int, int>((offsetX + borderSize).ceil(), (offsetY + borderSize).ceil()));
     });
   }
 }
