@@ -24,6 +24,14 @@ abstract class Renderer<T> {
 
   void scheduleRender();
 
+  Tuple4<double, double, double, double> getNodeMargin();
   Tuple4<double, double, double, double> getNodePadding();
+  int getNodeBackgroundColor();
+  int getNodeBorderColor();
+  double getNodeBorderSize();
+
+  int getConnectorBackgroundColor();
+  double getConnectorWidth();
+  double getConnectorHeight();
 
 }

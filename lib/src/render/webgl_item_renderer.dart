@@ -37,8 +37,8 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     g.rect(-dw/2, -dh/2, dw, dh);
     g.closePath();
 
-    g.strokeColor(xl.Color.DarkSlateGray);
-    g.fillColor(xl.Color.LightSlateGray);
+    g.strokeColor(nodeStyle.border, nodeStyle.borderSize);
+    g.fillColor(nodeStyle.background);
   }
 
   void connect(ItemRendererState<T> state) {
@@ -47,42 +47,45 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     final double tx = state.connectorToX;
     final double fy = state.connectorFromY;
     final double ty = state.connectorToY;
-    const double offset = 5.0;
-    double o;
+    double n, o, p;
 
     h.clear();
     h.beginPath();
 
     if (orientation == HierarchyOrientation.VERTICAL) {
-      o = fx < tx ? -.5 : .5;
+      n = nodeStyle.connectorHeight/2;
+      o = fx < tx ? -nodeStyle.connectorWidth/2 : nodeStyle.connectorWidth/2;
+      p = nodeStyle.padding.item1;
 
       h.moveTo(fx + o, fy);
-      h.lineTo(fx + o, ty + offset - .5);
-      h.lineTo(tx + o, ty + offset - .5);
+      h.lineTo(fx + o, ty + p - n);
+      h.lineTo(tx + o, ty + p - n);
       h.lineTo(tx + o, ty);
 
       h.lineTo(tx - o, ty);
-      h.lineTo(tx - o, ty + offset + .5);
-      h.lineTo(fx - o, ty + offset + .5);
+      h.lineTo(tx - o, ty + p + n);
+      h.lineTo(fx - o, ty + p + n);
       h.lineTo(fx - o, fy);
       h.lineTo(fx + o, fy);
     } else {
-      o = fy < ty ? -.5 : .5;
+      n = nodeStyle.connectorWidth/2;
+      o = fy < ty ? -nodeStyle.connectorHeight/2 : nodeStyle.connectorHeight/2;
+      p = nodeStyle.padding.item4;
 
       h.moveTo(fx, fy + o);
-      h.lineTo(tx + offset - .5, fy + o);
-      h.lineTo(tx + offset - .5, ty + o);
+      h.lineTo(tx + p - n, fy + o);
+      h.lineTo(tx + p - n, ty + o);
       h.lineTo(tx, ty + o);
 
       h.lineTo(tx, ty - o);
-      h.lineTo(tx + offset + .5, ty - o);
-      h.lineTo(tx + offset + .5, fy - o);
+      h.lineTo(tx + p + n, ty - o);
+      h.lineTo(tx + p + n, fy - o);
       h.lineTo(fx, fy - o);
       h.lineTo(fx, fy + o);
     }
 
     h.closePath();
 
-    h.fillColor(xl.Color.OrangeRed);
+    h.fillColor(nodeStyle.connectorBackground);
   }
 }

@@ -44,9 +44,18 @@ class Hierarchy<T> {
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
-    final Tuple4<double, double, double, double> nodePadding = renderer.getNodePadding();
+    final NodeStyle nodeStyle = new NodeStyle(
+      renderer.getNodeMargin(),
+      renderer.getNodePadding(),
+      renderer.getNodeBackgroundColor(),
+      renderer.getNodeBorderColor(),
+      renderer.getNodeBorderSize(),
+      renderer.getConnectorBackgroundColor(),
+      renderer.getConnectorWidth(),
+      renderer.getConnectorHeight()
+    );
 
-    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, orientation, nodePadding)..init();
+    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, orientation, nodeStyle)..init();
 
     new rx.Observable.zip(
     [
@@ -77,9 +86,9 @@ class Hierarchy<T> {
         } else {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodePadding);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodeStyle);
 
-          itemRenderer.init(equalityHandler, orientation);
+          itemRenderer.init(equalityHandler, orientation, nodeStyle);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
 
           isOpen = true;
@@ -90,9 +99,9 @@ class Hierarchy<T> {
         if (parentNodeData != null) {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodePadding);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, nodeStyle);
 
-          itemRenderer.init(equalityHandler, orientation);
+          itemRenderer.init(equalityHandler, orientation, nodeStyle);
           itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
 
           parentNodeData.addChildSink.add(newNodeData);
@@ -163,5 +172,19 @@ class Hierarchy<T> {
     print('NEW LOOP');
     renderer.state$sink.add(data.values);
   }
+
+}
+
+class NodeStyle {
+
+  final Tuple4<double, double, double, double> margin;
+  final Tuple4<double, double, double, double> padding;
+  final int background, border;
+  final double borderSize;
+
+  final int connectorBackground;
+  final double connectorWidth, connectorHeight;
+
+  NodeStyle(this.margin, this.padding, this.background, this.border, this.borderSize, this.connectorBackground, this.connectorWidth, this.connectorHeight);
 
 }
