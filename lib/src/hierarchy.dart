@@ -144,23 +144,18 @@ class Hierarchy<T> {
     _currentDigest.append(digestable);
 
     if (_currentDigestFuture == null) {
-      final Completer<Map<int, RenderState<T>>> completer = new Completer<Map<int, RenderState<T>>>();
+      final Completer<Iterable<RenderState<T>>> completer = new Completer<Iterable<RenderState<T>>>();
 
       new Timer(const Duration(milliseconds: 30), () {
-        completer.complete(_currentDigest.flush());
+        completer.complete(_currentDigest.flush().values);
 
-        _currentDigest = null;
+        //_currentDigest = null;
         _currentDigestFuture = null;
       });
 
-      _currentDigestFuture = completer.future.then(_render);
+      _currentDigestFuture = completer.future.then(renderer.state$sink.add);
     }
   }
-
-  void _render(Map<int, RenderState<T>> data) {
-    renderer.state$sink.add(data.values);
-  }
-
 }
 
 class NodeStyle {

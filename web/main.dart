@@ -22,6 +22,6 @@ void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {
     String next = R.nextInt(0xffffff).toString();
     hierarchy.add(next, parentData: parent);
 
-    if (level < 5) _addRandomChildren(hierarchy, next, level + 1);
+    if (level < 4) _addRandomChildren(hierarchy, next, level + 1);
   }
 }

@@ -53,14 +53,25 @@ class WebglRenderer<T> extends WebRenderer<T> {
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
       .listen((Tuple2<int, int> tuple) {
-        canvas.width = math.max(tuple.item1, canvas.width);
-        canvas.height = math.max(tuple.item2, canvas.height);
+        canvas.width = math.max(canvas.parent.clientWidth, tuple.item1);
+        canvas.height = math.max(canvas.parent.clientHeight, tuple.item2);
+
+        scheduleRender();
       });
 
     new rx.Observable<Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream],
       (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems) {
         return new Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>(data, parentMap, offsetTable, rootItems);
-      }).listen(_invalidate);
+      })
+        .map(_invalidate)
+        .flatMapLatest((List<xl.Tween> animations) {
+          final StreamController<xl.Tween> delayedAnimations$ctrl = new StreamController<xl.Tween>();
+
+          stage.onEnterFrame.take(1).listen((_) => delayedAnimations$ctrl.addStream(new Stream<xl.Tween>.fromIterable(animations)));
+
+          return delayedAnimations$ctrl.stream;
+        })
+        .listen(stage.juggler.add);
 
     _parentMap$ctrl.add(<ItemRenderer<T>, xl.DisplayObjectContainer>{});
     _offsetTable$ctrl.add(<ItemRenderer<T>, Tuple2<double, double>>{});
@@ -98,11 +109,13 @@ class WebglRenderer<T> extends WebRenderer<T> {
     stage.renderMode = xl.StageRenderMode.ONCE;
   }
 
-  void _invalidate(Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>> tuple) {
+  List<xl.Tween> _invalidate(Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>> tuple) {
     final Iterable<RenderState<T>> data = tuple.item1;
     final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = tuple.item2;
     final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = tuple.item3;
     final Map<NodeData<T>, RenderState<T>> rootItems = tuple.item4;
+    final List<xl.Tween> tweens = <xl.Tween>[];
+    int dw = 0, dh = 0;
 
     data.forEach((RenderState<T> entry) {
       final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry.childData;
@@ -122,7 +135,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
         offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
-        renderLoop.juggler.addTween(child, .3)
+        tweens.add(new xl.Tween(child, .3)
           ..animate.x.to(childPos.item2)
           ..animate.y.to(childPos.item3)
           ..onUpdate = () {
@@ -140,7 +153,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2, .0, pos.x, pos.y));
             }
-          };
+          });
 
         //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
       }
@@ -163,15 +176,15 @@ class WebglRenderer<T> extends WebRenderer<T> {
         if (orientation == HierarchyOrientation.VERTICAL) {
           offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2 + borderSize, entry.state.height / 2 + borderSize);
 
-          renderLoop.juggler.addTween(sprite, .3)
+          tweens.add(new xl.Tween(sprite, .3)
             ..animate.x.to(xOffset + entry.state.actualWidth / 2 + borderSize)
-            ..animate.y.to(entry.state.height / 2 + borderSize);
+            ..animate.y.to(entry.state.height / 2 + borderSize));
         } else {
           offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2 + borderSize, xOffset + entry.state.actualHeight / 2 + borderSize);
 
-          renderLoop.juggler.addTween(sprite, .3)
+          tweens.add(new xl.Tween(sprite, .3)
             ..animate.x.to(entry.state.width / 2 + borderSize)
-            ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize);
+            ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize));
         }
 
         final double dw = entry.state.width;
@@ -194,7 +207,14 @@ class WebglRenderer<T> extends WebRenderer<T> {
       offsetX += entry.childData.item2 + entry.childData.item5.actualWidth/2;
       offsetY += entry.childData.item3 + entry.childData.item5.actualHeight/2;
 
-      screenSize$ctrl.add(new Tuple2<int, int>((offsetX + borderSize).ceil(), (offsetY + borderSize).ceil()));
+      final dw0 = (offsetX + borderSize).ceil(), dh0 = (offsetY + borderSize).ceil();
+
+      dw = (dw0 > dw) ? dw0 : dw;
+      dh = (dh0 > dh) ? dh0 : dh;
     });
+
+    screenSize$ctrl.add(new Tuple2<int, int>(dw, dh));
+
+    return tweens;
   }
 }
