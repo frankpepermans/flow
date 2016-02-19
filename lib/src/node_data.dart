@@ -90,16 +90,16 @@ class NodeData<T> {
               double x, y;
 
               if (orientation == HierarchyOrientation.VERTICAL) {
-                dwh = childrenStates.fold(new Tuple2<double, double>(.0, state.height), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.height)));
+                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth, math.max(prevValue.item2, currValue.height)));
 
                 x = -dwh.item1/2 + childState.actualWidth/2;
-                y = dwh.item2;
+                y = state.height/2 + dwh.item2/2;
 
                 for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth;
               } else {
-                dwh = childrenStates.fold(new Tuple2<double, double>(state.width, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(math.max(prevValue.item1, currValue.width), prevValue.item2 + currValue.actualHeight));
+                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(math.max(prevValue.item1, currValue.width), prevValue.item2 + currValue.actualHeight));
 
-                x = dwh.item1;
+                x = state.width/2 + dwh.item1/2;
                 y = -dwh.item2/2 + childState.actualHeight/2;
 
                 for (int i=0; i<childState.childIndex; i++) y += childrenStates[i].actualHeight;

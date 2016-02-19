@@ -39,6 +39,7 @@ class ItemRendererState<T> {
 abstract class ItemRenderer<T> {
 
   bool _isInitialized = false;
+  HierarchyOrientation orientation;
 
   bool get isInitialized => _isInitialized;
   Stream<Tuple2<double, double>> get resize$ => _resize$ctrl.stream;
@@ -58,7 +59,9 @@ abstract class ItemRenderer<T> {
 
   int renderCount = 0;
 
-  void init(NodeEqualityHandler<T> equalityHandler) {
+  void init(NodeEqualityHandler<T> equalityHandler, HierarchyOrientation orientation) {
+    this.orientation = orientation;
+
     new rx.Observable<ItemRendererState<T>>.combineLatest(<Stream>[
       _data$ctrl.stream,
       rx.observable(_connector$ctrl.stream).startWith(const <Tuple4<double, double, double, double>>[const Tuple4<double, double, double, double>(.0, .0, .0, .0)]),

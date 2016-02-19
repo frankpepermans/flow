@@ -5,12 +5,15 @@ import 'package:stagexl/stagexl.dart' as xl;
 import 'package:tuple/tuple.dart';
 
 import 'package:flow/src/render/item_renderer.dart';
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 
 class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
   final xl.Sprite container = new xl.Sprite();
+  final xl.Shape connector = new xl.Shape();
 
   WebglItemRenderer() : super() {
+    addChild(connector);
     addChild(container);
 
     bool isOpen = false;
@@ -25,19 +28,58 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   @override
   void update(ItemRendererState<T> state) {
     final xl.Graphics g = container.graphics;
+    final xl.Graphics h = connector.graphics;
+    final double dw = state.w;
+    final double dh = state.h;
+    final double fx = state.connectorFromX;
+    final double tx = state.connectorToX;
+    final double fy = state.connectorFromY;
+    final double ty = state.connectorToY;
+    const double offset = 5.0;
+    double o;
 
     g.clear();
+    h.clear();
 
     g.beginPath();
-    g.rect(-state.w/2, -state.h/2, state.w, state.h);
-    g.strokeColor(xl.Color.Red);
-    g.fillColor(xl.Color.LightGray);
+    g.rect(-dw/2, -dh/2, dw, dh);
     g.closePath();
 
-    g.beginPath();
-    g.moveTo(state.connectorFromX, state.connectorFromY);
-    g.lineTo(state.connectorToX, state.connectorToY);
-    g.strokeColor(xl.Color.Red);
-    g.closePath();
+    g.strokeColor(xl.Color.DarkSlateGray);
+    g.fillColor(xl.Color.LightSlateGray);
+
+    h.beginPath();
+
+    if (orientation == HierarchyOrientation.VERTICAL) {
+      o = fx < tx ? -.5 : .5;
+
+      h.moveTo(fx + o, fy);
+      h.lineTo(fx + o, ty + offset - .5);
+      h.lineTo(tx + o, ty + offset - .5);
+      h.lineTo(tx + o, ty);
+
+      h.lineTo(tx - o, ty);
+      h.lineTo(tx - o, ty + offset + .5);
+      h.lineTo(fx - o, ty + offset + .5);
+      h.lineTo(fx - o, fy);
+      h.lineTo(fx + o, fy);
+    } else {
+      o = fy < ty ? -.5 : .5;
+
+      h.moveTo(fx, fy + o);
+      h.lineTo(tx + offset - .5, fy + o);
+      h.lineTo(tx + offset - .5, ty + o);
+      h.lineTo(tx, ty + o);
+
+      h.lineTo(tx, ty - o);
+      h.lineTo(tx + offset + .5, ty - o);
+      h.lineTo(tx + offset + .5, fy - o);
+      h.lineTo(fx, fy - o);
+      h.lineTo(fx, fy + o);
+    }
+
+    h.closePath();
+
+    h.fillColor(xl.Color.OrangeRed);
   }
 }

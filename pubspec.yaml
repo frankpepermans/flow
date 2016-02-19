@@ -8,7 +8,8 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  stagexl: any
+  stagexl:
+    path: ../stagexl/
   tuple: any
   stream_channel: any
   rxdart: any

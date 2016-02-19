@@ -54,7 +54,7 @@ class WebglRenderer<T> extends Renderer {
 
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
-      .listen((Tuple2<int, int> tuple) {
+      .listen((Tuple2<int, int> tuple) {print(tuple);
         canvas.width = math.max(tuple.item1, canvas.width);
         canvas.height = math.max(tuple.item2, canvas.height);
       });
@@ -78,7 +78,7 @@ class WebglRenderer<T> extends Renderer {
     xl.DisplayObjectContainer parent = parentMap[sprite];
     double offsetX = localOffset.item1, offsetY = localOffset.item2;
 
-    while (parent != null) {
+    while (true) {
       Tuple2<double, double> parentOffset = offsetTable[parent];
 
       if (parentOffset != null) {
@@ -86,7 +86,11 @@ class WebglRenderer<T> extends Renderer {
         offsetY += parentOffset.item2;
       }
 
+      if (parent == topContainer) break;
+
       parent = parentMap[parent];
+
+      if (parent == null) parent = topContainer;
     }
 
     return new Tuple2<double, double>(offsetX, offsetY);
@@ -183,14 +187,12 @@ class WebglRenderer<T> extends Renderer {
       }
     });
 
-    data.forEach((RenderState<T> entry) {
+    data.where((RenderState<T> entry) => entry.childData !=  null).forEach((RenderState<T> entry) {
       final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, parentMap, offsetTable);
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;
 
-      if (entry.childData !=  null) {
-        offsetX += entry.childData.item2 + entry.childData.item5.actualWidth/2;
-        offsetY += entry.childData.item3 + entry.childData.item5.actualHeight/2;
-      }
+      offsetX += entry.childData.item2 + entry.childData.item5.actualWidth/2;
+      offsetY += entry.childData.item3 + entry.childData.item5.actualHeight/2;
 
       screenSize$ctrl.add(new Tuple2<int, int>(offsetX.ceil(), offsetY.ceil()));
     });
