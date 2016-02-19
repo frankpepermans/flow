@@ -78,7 +78,7 @@ class Hierarchy<T> {
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, renderer.nodeStyle);
 
           itemRenderer.init(equalityHandler, orientation, renderer.nodeStyle);
-          itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
+          itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
           isOpen = true;
 
@@ -91,7 +91,7 @@ class Hierarchy<T> {
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, orientation, renderer.nodeStyle);
 
           itemRenderer.init(equalityHandler, orientation, renderer.nodeStyle);
-          itemRenderer.renderingRequired$.listen((_) => renderer.scheduleRender());
+          itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
           parentNodeData.addChildSink.add(newNodeData);
         }

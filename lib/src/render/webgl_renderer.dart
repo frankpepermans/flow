@@ -25,13 +25,15 @@ class WebglRenderer<T> extends WebRenderer<T> {
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
 
   html.CanvasElement canvas;
+  html.CanvasRenderingContext2D canvasRenderingContext2D;
   xl.Stage stage;
-  xl.RenderLoop renderLoop;
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
 
   WebglRenderer(String selector) : super() {
     canvas = html.querySelector(selector);
+    canvasRenderingContext2D = canvas.context2D;
+
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
@@ -39,16 +41,12 @@ class WebglRenderer<T> extends WebRenderer<T> {
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE
       ..align = xl.StageAlign.TOP_LEFT
-      ..backgroundColor = xl.Color.White;
+      ..backgroundColor = xl.Color.White
+      ..renderMode = xl.StageRenderMode.ONCE;
     topContainer = new xl.Sprite();
-    renderLoop = new xl.RenderLoop();
     screenSize$ctrl = new StreamController<Tuple2<int, int>>();
 
-    stage.renderMode = xl.StageRenderMode.ONCE;
-
     stage.addChild(topContainer);
-
-    renderLoop.addStage(stage);
 
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
@@ -56,7 +54,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
         canvas.width = math.max(canvas.parent.clientWidth, tuple.item1);
         canvas.height = math.max(canvas.parent.clientHeight, tuple.item2);
 
-        scheduleRender();
+        materializeStage$sink.add(true);
       });
 
     new rx.Observable<Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream],
@@ -64,18 +62,27 @@ class WebglRenderer<T> extends WebRenderer<T> {
         return new Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>(data, parentMap, offsetTable, rootItems);
       })
         .map(_invalidate)
-        .flatMapLatest((List<xl.Tween> animations) {
-          final StreamController<xl.Tween> delayedAnimations$ctrl = new StreamController<xl.Tween>();
+        .flatMapLatest((List<xl.Tween> animations) => rx.observable(getAnimationStream()).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
+        .listen((xl.Tween animation) {
+          stage.juggler.add(animation);
 
-          stage.onEnterFrame.take(1).listen((_) => delayedAnimations$ctrl.addStream(new Stream<xl.Tween>.fromIterable(animations)));
-
-          return delayedAnimations$ctrl.stream;
-        })
-        .listen(stage.juggler.add);
+          materializeStage$sink.add(true);
+        });
 
     _parentMap$ctrl.add(<ItemRenderer<T>, xl.DisplayObjectContainer>{});
     _offsetTable$ctrl.add(<ItemRenderer<T>, Tuple2<double, double>>{});
     _rootItems$ctrl.add(<NodeData<T>, RenderState<T>>{});
+
+    new xl.RenderLoop()..addStage(stage);
+
+    materializeStage$
+      .listen((_) {
+        stage.renderMode = xl.StageRenderMode.ONCE;
+      });
+  }
+
+  Stream<num> getAnimationStream() async* {
+    yield await html.window.animationFrame;
   }
 
   ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();
@@ -103,10 +110,6 @@ class WebglRenderer<T> extends WebRenderer<T> {
     }
 
     return new Tuple2<double, double>(offsetX, offsetY);
-  }
-
-  void scheduleRender() {
-    stage.renderMode = xl.StageRenderMode.ONCE;
   }
 
   List<xl.Tween> _invalidate(Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>> tuple) {

@@ -5,7 +5,7 @@ import 'package:flow/flow.dart';
 import 'package:flow/src/render/webgl_renderer.dart';
 
 void main() {
-  final WebglRenderer<String> renderer = new WebglRenderer<String>('#stage');
+  final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-canvas');
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, HierarchyOrientation.VERTICAL, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
   final math.Random R = new math.Random();
 

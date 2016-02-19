@@ -48,9 +48,6 @@ class WebRenderer<T> extends Renderer<T> {
   ItemRenderer<T> newDefaultItemRendererInstance() => null;
 
   @override
-  void scheduleRender() {}
-
-  @override
   Tuple4<double, double, double, double> getNodeMargin() {
     final html.CssStyleDeclaration cssStyleDeclaration = getStyleForSelectorName('flow-node');
     final double margin = _cssStyleValueToDouble(cssStyleDeclaration.margin);

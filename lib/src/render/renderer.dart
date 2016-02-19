@@ -18,13 +18,15 @@ abstract class Renderer<T> {
   Sink<Iterable<RenderState<T>>> get state$sink => _state$ctrl.sink;
   Stream<Iterable<RenderState<T>>> get state$ => _state$ctrl.stream;
 
+  Sink<bool> get materializeStage$sink => _materializeStage$ctrl.sink;
+  Stream<bool> get materializeStage$ => _materializeStage$ctrl.stream;
+
   HierarchyOrientation orientation;
 
   final StreamController<Iterable<RenderState<T>>> _state$ctrl = new StreamController<Iterable<RenderState<T>>>();
+  final StreamController<bool> _materializeStage$ctrl = new StreamController<bool>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
-
-  void scheduleRender();
 
   Tuple4<double, double, double, double> getNodeMargin();
   Tuple4<double, double, double, double> getNodePadding();

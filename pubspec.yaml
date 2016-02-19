@@ -8,8 +8,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  stagexl:
-    path: ../stagexl/
+  stagexl: any
   tuple: any
   stream_channel: any
   rxdart: any
@@ -17,3 +16,8 @@ dependencies:
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'
+
+transformers:
+- $dart2js:
+    checked: true
+    minify: false
