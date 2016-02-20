@@ -3,7 +3,6 @@ library flow.renderer;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flow/src/force_print.dart' show fprint;
 import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
@@ -48,8 +47,8 @@ class Hierarchy<T> {
     new rx.Observable.zip(
     [
       new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>>[
-        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)) as Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>,
-        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)) as Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>,
+        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)),
+        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)),
         _retryNodeData$ctrl.stream
       ]),
       _nodeData$ctrl.stream
@@ -106,13 +105,12 @@ class Hierarchy<T> {
           .flatMap((Digestable digestable) => new Stream.fromFuture(_digest(digestable)))
           .listen(renderer.state$sink.add);
 
-        newNodeData.init();
+        if (tuple.item4 != null) newNodeData.node.className$sink.add(tuple.item4);
+
+        newNodeData.node.isOpen$sink.add(isOpen);
 
         node?.init();
-
-        if (tuple.item4 != null) newNodeData.node.className$ctrl.add(tuple.item4);
-
-        newNodeData.node.isOpen$ctrl.add(isOpen);
+        newNodeData.init();
 
         modifier.add(newNodeData);
       } else {

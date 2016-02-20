@@ -16,8 +16,6 @@ import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
 
-import 'package:flow/src/force_print.dart';
-
 class WebglRenderer<T> extends WebRenderer<T> {
 
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
@@ -32,6 +30,9 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
   WebglRenderer(String selector) : super() {
     canvas = html.querySelector(selector);
+
+    html.window.onScroll.map((_) => true).listen(materializeStage$sink.add);
+
     canvasRenderingContext2D = canvas.context2D;
 
     stage = new xl.Stage(canvas,

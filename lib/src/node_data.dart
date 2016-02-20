@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:flow/src/force_print.dart' show fprint;
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/render/item_renderer.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
@@ -46,16 +45,16 @@ class NodeData<T> {
   void init() {
     if (itemRenderer != null) {
       itemRenderer.resize$.listen((Tuple2<double, double> tuple) {
-        node.width$ctrl.add(tuple.item1);
-        node.height$ctrl.add(tuple.item2);
+        node.width$sink.add(tuple.item1);
+        node.height$sink.add(tuple.item2);
       });
     }
 
     new rx.Observable<UnmodifiableListView<NodeData<T>>>.zip(
       <Stream>[
         new rx.Observable.merge(<Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>>[
-          _addChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.ADD)) as Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>,
-          _removeChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.REMOVE)) as Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>,
+          _addChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.ADD)),
+          _removeChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.REMOVE)),
           _retryChild$ctrl.stream
         ]),
         children$
@@ -80,7 +79,7 @@ class NodeData<T> {
                   nodeData.node.state$.distinct((NodeState stateA, NodeState stateB) => stateA.equals(stateB)).listen((NodeState childState) {
                     childStates[i] = childState;
 
-                    childStates$.add(new UnmodifiableListView<NodeState>(childStates));
+                    if (!childStates.contains(null)) childStates$.add(new UnmodifiableListView<NodeState>(childStates));
                   });
                 }
 
@@ -115,13 +114,13 @@ class NodeData<T> {
               _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
               if (orientation == HierarchyOrientation.VERTICAL) {
-                node.recursiveWidth$ctrl.add(tuple.item4.item1 - nodeStyle.margin.item2 - nodeStyle.margin.item4);
+                node.recursiveWidth$sink.add(tuple.item4.item1 - nodeStyle.margin.item2 - nodeStyle.margin.item4);
 
-                tuple.item1.node.recursiveHeight$ctrl.add(tuple.item4.item2);
+                tuple.item1.node.recursiveHeight$sink.add(tuple.item4.item2);
               } else {
-                node.recursiveHeight$ctrl.add(tuple.item4.item2 - nodeStyle.margin.item1 - nodeStyle.margin.item3);
+                node.recursiveHeight$sink.add(tuple.item4.item2 - nodeStyle.margin.item1 - nodeStyle.margin.item3);
 
-                tuple.item1.node.recursiveWidth$ctrl.add(tuple.item4.item1);
+                tuple.item1.node.recursiveWidth$sink.add(tuple.item4.item1);
               }
             });
             break;
@@ -146,7 +145,7 @@ class NodeData<T> {
           nodeData = list.elementAt(i);
 
           nodeData._parent$ctrl.add(this);
-          nodeData.node.childIndex$ctrl.add(i);
+          nodeData.node.childIndex$sink.add(i);
         }
 
         _children$ctrl.add(list);

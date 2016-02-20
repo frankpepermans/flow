@@ -3,9 +3,7 @@ library flow.display.node;
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:stream_channel/stream_channel.dart';
 import 'package:rxdart/rxdart.dart' as rx;
-import 'package:tuple/tuple.dart' show Tuple2;
 
 class NodeState {
 
@@ -50,62 +48,44 @@ class NodeState {
 
 class Node {
 
-  Sink<String> get className$ctrl => _classNameController.sink;
-  Sink<bool> get isOpen$ctrl => _isOpenController.sink;
-  Sink<int> get childIndex$ctrl => _childIndexController.sink;
-  Sink<double> get width$ctrl => _widthController.sink;
-  Sink<double> get height$ctrl => _heightController.sink;
-  Sink<double> get recursiveWidth$ctrl => _recursiveWidthController.sink;
-  Sink<double> get recursiveHeight$ctrl => _recursiveHeightController.sink;
+  Sink<String> get className$sink => _classNameController.sink;
+  Sink<bool> get isOpen$sink => _isOpenController.sink;
+  Sink<int> get childIndex$sink => _childIndexController.sink;
+  Sink<double> get width$sink => _widthController.sink;
+  Sink<double> get height$sink => _heightController.sink;
+  Sink<double> get recursiveWidth$sink => _recursiveWidthController.sink;
+  Sink<double> get recursiveHeight$sink => _recursiveHeightController.sink;
 
-  Stream<NodeState> state$;
-  Sink<NodeState> state$ctrl;
+  rx.Observable<NodeState> get state$ => _state$;
 
-  StreamController<String> _classNameController = new StreamController<String>();
-  StreamController<bool> _isOpenController = new StreamController<bool>();
-  StreamController<int> _childIndexController = new StreamController<int>();
-  StreamController<double> _widthController = new StreamController<double>();
-  StreamController<double> _heightController = new StreamController<double>();
-  StreamController<double> _recursiveWidthController = new StreamController<double>();
-  StreamController<double> _recursiveHeightController = new StreamController<double>();
+  final StreamController<NodeState> _state$ctrl = new StreamController<NodeState>.broadcast();
+  final StreamController<String> _classNameController = new StreamController<String>();
+  final StreamController<bool> _isOpenController = new StreamController<bool>();
+  final StreamController<int> _childIndexController = new StreamController<int>();
+  final StreamController<double> _widthController = new StreamController<double>();
+  final StreamController<double> _heightController = new StreamController<double>();
+  final StreamController<double> _recursiveWidthController = new StreamController<double>();
+  final StreamController<double> _recursiveHeightController = new StreamController<double>();
+
+  rx.Observable<NodeState> _state$;
 
   Node() {
-    StreamChannelController<NodeState> controller = new StreamChannelController<NodeState>(allowForeignErrors: false);
-
-    state$ = controller.foreign.stream.asBroadcastStream();
-    state$ctrl = controller.local.sink;
-
-    final rx.Observable<NodeState> combinedState$ = new rx.Observable<NodeState>.combineLatest(
+    _state$ = new rx.Observable<NodeState>.combineLatest(
       <Stream>[_classNameController.stream, _isOpenController.stream, _childIndexController.stream, _widthController.stream, _heightController.stream, _recursiveWidthController.stream, _recursiveHeightController.stream],
       (String className, bool isOpen, int childIndex, double width, double height, double recursiveWidth, double recursiveHeight)
-        => new NodeState(className, isOpen, childIndex, width, height, recursiveWidth, recursiveHeight));
-
-    combinedState$.pipe(controller.local.sink);
-
-    _classNameController.add('node');
-    _isOpenController.add(false);
-    _childIndexController.add(0);
-    _widthController.add(.0);
-    _heightController.add(.0);
-    _recursiveWidthController.add(.0);
-    _recursiveHeightController.add(.0);
+        => new NodeState(className, isOpen, childIndex, width, height, recursiveWidth, recursiveHeight), asBroadcastStream: true)
+      .debounce(const Duration(milliseconds: 20));
   }
 
   void init() {
+    _classNameController.add('node');
+    _isOpenController.add(false);
+    _childIndexController.add(0);
+    _recursiveWidthController.add(.0);
+    _recursiveHeightController.add(.0);
+
     _widthController.add(40.0);
     _heightController.add(40.0);
-
-    // mock async content loaded
-    //if (GEN_I == 10)
-    /*new Timer.periodic(new Duration(milliseconds: 600), (_) {
-      _widthController.add(R.nextDouble() * 60.0 + 20.0);
-      _heightController.add(R.nextDouble() * 250.0 + 50.0);
-    });*/
   }
-
-  void render(Tuple2<NodeState, Tuple2<double, double>> data) {
-
-  }
-
 }
 

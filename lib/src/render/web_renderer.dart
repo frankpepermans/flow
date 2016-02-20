@@ -47,7 +47,6 @@ class WebRenderer<T> extends Renderer<T> {
     );
   }
 
-  @override
   Stream<num> getAnimationStream() async* {
     while (true) yield await html.window.animationFrame;
   }
@@ -142,7 +141,7 @@ class WebRenderer<T> extends Renderer<T> {
 
   int _cssStyleValueToInt(String styleValue, {int defaultValue: 0}) {
     if (styleValue.contains('rgb(')) {
-      final Iterable<int> rgb = styleValue.split('rgb(').last.split(')').first.split(',').map((String value) => int.parse(value.trim())) as Iterable<int>;
+      final Iterable<int> rgb = styleValue.split('rgb(').last.split(')').first.split(',').map((String value) => int.parse(value.trim()));
 
       return (0xff << 24) | (rgb.first << 16) | (rgb.elementAt(1) << 8) | rgb.last;
     }

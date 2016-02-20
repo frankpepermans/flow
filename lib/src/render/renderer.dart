@@ -1,7 +1,6 @@
 library flow.render.renderer;
 
 import 'dart:async';
-import 'dart:html' as html;
 
 import 'package:tuple/tuple.dart';
 
