@@ -34,11 +34,11 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
     html.window.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
+    /*canvasRenderingContext3D = canvas.getContext3d();
     canvasRenderingContext2D = canvas.context2D;
-    canvasRenderingContext3D = canvas.getContext3d();
 
     print('hasRenderingContext2D: ${(canvasRenderingContext2D != null)}');
-    print('hasRenderingContext3D: ${(canvasRenderingContext3D != null)}');
+    print('hasRenderingContext3D: ${(canvasRenderingContext3D != null)}');*/
 
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
