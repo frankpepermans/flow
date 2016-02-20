@@ -146,7 +146,7 @@ class Hierarchy<T> {
     if (_currentDigestFuture == null) {
       final Completer<Iterable<RenderState<T>>> completer = new Completer<Iterable<RenderState<T>>>();
 
-      new Timer(const Duration(milliseconds: 30), () {
+      scheduleMicrotask(() {
         completer.complete(_currentDigest.flush().values);
 
         //_currentDigest = null;

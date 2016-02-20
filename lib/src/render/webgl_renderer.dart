@@ -61,6 +61,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
       (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems) {
         return new Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>(data, parentMap, offsetTable, rootItems);
       })
+        .debounce(const Duration(milliseconds: 20))
         .map(_invalidate)
         .flatMapLatest((List<xl.Tween> animations) => rx.observable(getAnimationStream()).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
         .listen((xl.Tween animation) {
@@ -82,7 +83,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
   }
 
   Stream<num> getAnimationStream() async* {
-    yield await html.window.animationFrame;
+    while (true) yield await html.window.animationFrame;
   }
 
   ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();
@@ -90,6 +91,8 @@ class WebglRenderer<T> extends WebRenderer<T> {
   Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable) {
     final ItemRenderer<T> sprite = nodeData.itemRenderer;
     final Tuple2<double, double> localOffset = offsetTable[sprite];
+
+    if (localOffset == null) return const Tuple2<double, double>(.0, .0);
 
     xl.DisplayObjectContainer parent = parentMap[sprite];
     double offsetX = localOffset.item1, offsetY = localOffset.item2;

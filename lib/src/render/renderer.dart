@@ -28,6 +28,8 @@ abstract class Renderer<T> {
 
   ItemRenderer<T> newDefaultItemRendererInstance();
 
+  Stream<num> getAnimationStream();
+
   Tuple4<double, double, double, double> getNodeMargin();
   Tuple4<double, double, double, double> getNodePadding();
   int getNodeBackgroundColor();
