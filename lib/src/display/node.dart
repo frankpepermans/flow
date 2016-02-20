@@ -92,12 +92,8 @@ class Node {
   }
 
   void init() {
-    final math.Random R = new math.Random();
-
-    if (GEN == null) GEN = _gen();
-
     _widthController.add(40.0);
-    _heightController.add(40.0);GEN_I++;
+    _heightController.add(40.0);
 
     // mock async content loaded
     //if (GEN_I == 10)
@@ -107,23 +103,8 @@ class Node {
     });*/
   }
 
-  static Iterable<double> GEN;
-  static int GEN_I = 0;
-
   void render(Tuple2<NodeState, Tuple2<double, double>> data) {
 
-  }
-
-  Iterable<double> _gen() sync* {
-    double s = 100.0;
-
-    while (true) {
-      s += 10.0;
-
-      if (s > 200.0) s = 100.0;
-
-      yield s;
-    }
   }
 
 }

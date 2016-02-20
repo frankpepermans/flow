@@ -1,5 +1,6 @@
 library flow.render.web_renderer;
 
+import 'dart:async';
 import 'dart:html' as html;
 
 import 'package:tuple/tuple.dart';
@@ -12,6 +13,8 @@ import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 export 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
 class WebRenderer<T> extends Renderer<T> {
+
+  Stream<num> get animationStream => getAnimationStream();
 
   Map<String, html.CssStyleDeclaration> _cssStyleDeclarations;
 
@@ -42,6 +45,11 @@ class WebRenderer<T> extends Renderer<T> {
       getConnectorWidth(),
       getConnectorHeight()
     );
+  }
+
+  @override
+  Stream<num> getAnimationStream() async* {
+    while (true) yield await html.window.animationFrame;
   }
 
   @override
@@ -134,7 +142,7 @@ class WebRenderer<T> extends Renderer<T> {
 
   int _cssStyleValueToInt(String styleValue, {int defaultValue: 0}) {
     if (styleValue.contains('rgb(')) {
-      final Iterable<int> rgb = styleValue.split('rgb(').last.split(')').first.split(',').map((String value) => int.parse(value.trim()));
+      final Iterable<int> rgb = styleValue.split('rgb(').last.split(')').first.split(',').map((String value) => int.parse(value.trim())) as Iterable<int>;
 
       return (0xff << 24) | (rgb.first << 16) | (rgb.elementAt(1) << 8) | rgb.last;
     }

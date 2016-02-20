@@ -45,7 +45,7 @@ class Digest<T> {
 
   Digest();
 
-  void append(Digestable digestable) {
+  void append(Digestable<T> digestable) {
     _digestables[digestable.key] = digestable.data;
   }
 

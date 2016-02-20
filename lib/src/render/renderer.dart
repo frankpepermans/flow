@@ -13,6 +13,8 @@ export 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 
 abstract class Renderer<T> {
 
+  Stream<num> get animationStream;
+
   NodeStyle nodeStyle;
 
   Sink<Iterable<RenderState<T>>> get state$sink => _state$ctrl.sink;
@@ -27,8 +29,6 @@ abstract class Renderer<T> {
   final StreamController<bool> _materializeStage$ctrl = new StreamController<bool>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
-
-  Stream<num> getAnimationStream();
 
   Tuple4<double, double, double, double> getNodeMargin();
   Tuple4<double, double, double, double> getNodePadding();

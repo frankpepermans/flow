@@ -63,7 +63,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
       })
         .debounce(const Duration(milliseconds: 20))
         .map(_invalidate)
-        .flatMapLatest((List<xl.Tween> animations) => rx.observable(getAnimationStream()).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
+        .flatMapLatest((List<xl.Tween> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
         .listen((xl.Tween animation) {
           stage.juggler.add(animation);
 
@@ -80,10 +80,6 @@ class WebglRenderer<T> extends WebRenderer<T> {
       .listen((_) {
         stage.renderMode = xl.StageRenderMode.ONCE;
       });
-  }
-
-  Stream<num> getAnimationStream() async* {
-    while (true) yield await html.window.animationFrame;
   }
 
   ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();

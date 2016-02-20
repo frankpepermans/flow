@@ -36,7 +36,6 @@ class Hierarchy<T> {
 
   NodeData<T> topLevelNodeData;
   Digest _currentDigest;
-  Future<Map<int, Map<String, dynamic>>> _currentDigestFuture;
 
   Hierarchy(this.renderer, this.orientation, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
     renderer.orientation = orientation;
@@ -49,8 +48,8 @@ class Hierarchy<T> {
     new rx.Observable.zip(
     [
       new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>>[
-        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)),
-        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)),
+        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)) as Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>,
+        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)) as Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>,
         _retryNodeData$ctrl.stream
       ]),
       _nodeData$ctrl.stream
@@ -103,7 +102,9 @@ class Hierarchy<T> {
           rx.observable(newNodeData.childPosition$).startWith([null])
         ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos) {
           return new Digestable(quiver.hash2(newNodeData, childPos?.item1), new RenderState<T>(newNodeData, state, parent, children, childPos));
-        }).listen(_digest);
+        })
+          .flatMap((Digestable digestable) => new Stream.fromFuture(_digest(digestable)))
+          .listen(renderer.state$sink.add);
 
         newNodeData.init();
 
@@ -138,23 +139,20 @@ class Hierarchy<T> {
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
 
-  void _digest(Digestable digestable) {
+  Future<Iterable<RenderState<T>>> _digest(Digestable digestable) {
     if (_currentDigest == null) _currentDigest = new Digest();
 
     _currentDigest.append(digestable);
 
-    if (_currentDigestFuture == null) {
-      final Completer<Iterable<RenderState<T>>> completer = new Completer<Iterable<RenderState<T>>>();
+    final Completer<Iterable<RenderState<T>>> completer = new Completer<Iterable<RenderState<T>>>();
 
-      scheduleMicrotask(() {
-        completer.complete(_currentDigest.flush().values);
+    scheduleMicrotask(() {
+      completer.complete(new UnmodifiableListView(_currentDigest.flush().values.toList(growable: false)));
 
-        //_currentDigest = null;
-        _currentDigestFuture = null;
-      });
+      //_currentDigest = null;
+    });
 
-      _currentDigestFuture = completer.future.then(renderer.state$sink.add);
-    }
+    return completer.future;
   }
 }
 

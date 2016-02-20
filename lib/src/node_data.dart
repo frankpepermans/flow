@@ -54,8 +54,8 @@ class NodeData<T> {
     new rx.Observable<UnmodifiableListView<NodeData<T>>>.zip(
       <Stream>[
         new rx.Observable.merge(<Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>>[
-          _addChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.ADD)),
-          _removeChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.REMOVE)),
+          _addChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.ADD)) as Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>,
+          _removeChild$ctrl.stream.map((NodeData<T> nodeData) => new Tuple2<NodeData<T>, NodeDataChildOperation>(nodeData, NodeDataChildOperation.REMOVE)) as Stream<Tuple2<NodeData<T>, NodeDataChildOperation>>,
           _retryChild$ctrl.stream
         ]),
         children$
@@ -91,7 +91,7 @@ class NodeData<T> {
               double x, y;
 
               if (orientation == HierarchyOrientation.VERTICAL) {
-                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4, math.max(prevValue.item2, currValue.height)));
+                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(prevValue.item1 + currValue.actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4, math.max(prevValue.item2, currValue.height))) as Tuple2<double, double>;
 
                 x = -dwh.item1/2 + childState.actualWidth/2;
                 y = state.height/2 + dwh.item2/2 + nodeStyle.margin.item1 + nodeStyle.margin.item3;
@@ -100,7 +100,7 @@ class NodeData<T> {
 
                 x += nodeStyle.margin.item4;
               } else {
-                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(math.max(prevValue.item1, currValue.width), prevValue.item2 + currValue.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3));
+                dwh = childrenStates.fold(new Tuple2<double, double>(.0, .0), (Tuple2<double, double> prevValue, NodeState currValue) => new Tuple2(math.max(prevValue.item1, currValue.width), prevValue.item2 + currValue.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3)) as Tuple2<double, double>;
 
                 x = state.width/2 + dwh.item1/2 + nodeStyle.margin.item2 + nodeStyle.margin.item4;
                 y = -dwh.item2/2 + childState.actualHeight/2;
