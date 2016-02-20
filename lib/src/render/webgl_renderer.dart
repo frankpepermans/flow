@@ -24,6 +24,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
   html.CanvasElement canvas;
   html.CanvasRenderingContext2D canvasRenderingContext2D;
+  html.CanvasRenderingContext canvasRenderingContext3D;
   xl.Stage stage;
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
@@ -34,10 +35,15 @@ class WebglRenderer<T> extends WebRenderer<T> {
     html.window.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
     canvasRenderingContext2D = canvas.context2D;
+    canvasRenderingContext3D = canvas.getContext3d();
+
+    print('hasRenderingContext2D: ${(canvasRenderingContext2D != null)}');
+    print('hasRenderingContext3D: ${(canvasRenderingContext3D != null)}');
 
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
+        ..renderEngine = xl.RenderEngine.WebGL
         ..inputEventMode = xl.InputEventMode.MouseAndTouch
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE

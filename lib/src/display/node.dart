@@ -58,7 +58,6 @@ class Node {
 
   rx.Observable<NodeState> get state$ => _state$;
 
-  final StreamController<NodeState> _state$ctrl = new StreamController<NodeState>.broadcast();
   final StreamController<String> _classNameController = new StreamController<String>();
   final StreamController<bool> _isOpenController = new StreamController<bool>();
   final StreamController<int> _childIndexController = new StreamController<int>();

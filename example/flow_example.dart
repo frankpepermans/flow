@@ -2,10 +2,3 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 library flow.example;
-
-import 'package:flow/flow.dart';
-
-main() {
-  var awesome = new Awesome();
-  print('awesome: ${awesome.isAwesome}');
-}

@@ -19,5 +19,5 @@ dev_dependencies:
 
 transformers:
 - $dart2js:
-    checked: false
+    checked: true
     minify: false
