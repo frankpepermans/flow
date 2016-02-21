@@ -56,9 +56,9 @@ class WebglRenderer<T> extends WebRenderer<T> {
         materializeStage$sink.add(true);
       });
 
-    new rx.Observable<Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream],
-      (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems) {
-        return new Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>(data, parentMap, offsetTable, rootItems);
+    new rx.Observable<Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream, orientation$],
+      (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems, HierarchyOrientation orientation) {
+        return new Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation>(data, parentMap, offsetTable, rootItems, orientation);
       })
         .debounce(const Duration(milliseconds: 20))
         .map(_invalidate)
@@ -110,7 +110,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
     return new Tuple2<double, double>(offsetX, offsetY);
   }
 
-  List<xl.Tween> _invalidate(Tuple4<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>> tuple) {
+  List<xl.Tween> _invalidate(Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation> tuple) {
     final Iterable<RenderState<T>> data = tuple.item1;
     final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = tuple.item2;
     final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = tuple.item3;
@@ -145,7 +145,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
             child.data$sink.add(childPos.item1.data);
             child.size$sink.add(new Tuple2<double, double>(dw, dh));
 
-            if (orientation == HierarchyOrientation.VERTICAL) {
+            if (tuple.item5 == HierarchyOrientation.VERTICAL) {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, entry.state.height / 2)));
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2 - nodeStyle.borderSize, pos.x, pos.y + nodeStyle.borderSize));
@@ -174,7 +174,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
       final double borderSize = nodeStyle.borderSize * 2;
 
       if (entry.state.childIndex != childIndex) {
-        if (orientation == HierarchyOrientation.VERTICAL) {
+        if (tuple.item5 == HierarchyOrientation.VERTICAL) {
           offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2 + borderSize, entry.state.height / 2 + borderSize);
 
           tweens.add(new xl.Tween(sprite, .3)

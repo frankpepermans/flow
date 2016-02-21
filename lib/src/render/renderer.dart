@@ -22,10 +22,12 @@ abstract class Renderer<T> {
   Sink<bool> get materializeStage$sink => _materializeStage$ctrl.sink;
   Stream<bool> get materializeStage$ => _materializeStage$ctrl.stream;
 
-  HierarchyOrientation orientation;
+  Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
+  Stream<HierarchyOrientation> get orientation$ => _orientation$ctrl.stream;
 
   final StreamController<Iterable<RenderState<T>>> _state$ctrl = new StreamController<Iterable<RenderState<T>>>();
   final StreamController<bool> _materializeStage$ctrl = new StreamController<bool>();
+  final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
 

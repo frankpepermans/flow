@@ -6,6 +6,16 @@ html, body {
 
 }
 
+.top-level-button {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: darkslategray;
+    color: white;
+    border: none;
+    padding: 10px;
+}
+
 .flow-node {
     margin: 10px;
     padding: 10px;

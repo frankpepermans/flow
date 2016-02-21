@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'dart:async';
+import 'dart:html';
 
 import 'package:flow/flow.dart';
 
@@ -6,13 +8,22 @@ import 'package:flow/src/render/webgl_renderer.dart';
 
 void main() {
   final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-canvas');
-  final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, HierarchyOrientation.VERTICAL, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+  final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+
+  hierarchy.setOrientation(HierarchyOrientation.VERTICAL);
 
   hierarchy.add('A', className: 'top-level-node');
   hierarchy.add('B', className: 'top-level-node');
 
   _addRandomChildren(hierarchy, 'A', 0);
   _addRandomChildren(hierarchy, 'B', 0);
+
+  querySelector('#button-orientation').onClick.listen((_) {
+    if (hierarchy.orientation == HierarchyOrientation.VERTICAL)
+      hierarchy.setOrientation(HierarchyOrientation.HORIZONTAL);
+    else
+      hierarchy.setOrientation(HierarchyOrientation.VERTICAL);
+  });
 }
 
 void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {

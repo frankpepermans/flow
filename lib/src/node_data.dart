@@ -22,6 +22,8 @@ class NodeData<T> {
 
   Sink<NodeData> get addChildSink => _addChild$ctrl.sink;
   Sink<NodeData> get removeChildSink => _removeChild$ctrl.sink;
+  Sink<HierarchyOrientation> get orientationSink => _orientation$ctrl.sink;
+
   Stream<NodeData> get parent$ => _parent$ctrl.stream;
   Stream<Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>> get childPosition$ => _childPosition$ctrl.stream;
   Stream<UnmodifiableListView<NodeData<T>>> get children$ => _children$ctrl.stream;
@@ -32,15 +34,21 @@ class NodeData<T> {
   final StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>> _retryChild$ctrl = new StreamController<Tuple2<NodeData<T>, NodeDataChildOperation>>();
   final StreamController<NodeData<T>> _parent$ctrl = new StreamController<NodeData<T>>.broadcast();
   final StreamController<UnmodifiableListView<NodeData<T>>> _children$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
+  final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>.broadcast();
 
-  final HierarchyOrientation orientation;
   final ItemRenderer<T> itemRenderer;
   final T data;
   final Node node;
   final ChildCompareHandler childCompareHandler;
   final NodeStyle nodeStyle;
 
-  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.orientation, this.nodeStyle);
+  HierarchyOrientation _orientation;
+
+  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.nodeStyle) {
+    _orientation$ctrl.stream.listen((HierarchyOrientation orientation) {
+      _orientation = orientation;
+    });
+  }
 
   void init() {
     if (itemRenderer != null) {
@@ -86,8 +94,9 @@ class NodeData<T> {
                 }
 
                 return childStates$.stream;
-              })
-            ], (NodeState state, NodeState childState, UnmodifiableListView<NodeState> childrenStates) {
+              }),
+              rx.observable(_orientation$ctrl.stream).startWith(<HierarchyOrientation>[_orientation])
+            ], (NodeState state, NodeState childState, UnmodifiableListView<NodeState> childrenStates, HierarchyOrientation orientation) {
               Tuple2<double, double> dwh;
               double x, y;
 
@@ -111,11 +120,11 @@ class NodeData<T> {
                 y += nodeStyle.margin.item1;
               }
 
-              return new Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, x, y, dwh, childrenStates, childState);
-            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple6<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState> tuple) {
+              return new Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation>(tuple.item1, x, y, dwh, childrenStates, childState, orientation);
+            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation> tuple) {
               _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
-              if (orientation == HierarchyOrientation.VERTICAL) {
+              if (tuple.item7 == HierarchyOrientation.VERTICAL) {
                 node.recursiveWidth$sink.add(tuple.item4.item1 - nodeStyle.margin.item2 - nodeStyle.margin.item4);
 
                 tuple.item1.node.recursiveHeight$sink.add(tuple.item4.item2);
@@ -154,7 +163,6 @@ class NodeData<T> {
       }
     });
 
-    _parent$ctrl.add(null);
     _children$ctrl.add(new UnmodifiableListView<NodeData<T>>(const []));
   }
 

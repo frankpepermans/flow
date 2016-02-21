@@ -69,7 +69,7 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     g.clear();
     g.beginPath();
 
-    if (orientation == HierarchyOrientation.VERTICAL) {
+    if (state.orientation == HierarchyOrientation.VERTICAL) {
       n = nodeStyle.connectorHeight/2;
       o = fx < tx ? -nodeStyle.connectorWidth/2 : nodeStyle.connectorWidth/2;
       p = nodeStyle.padding.item1;
