@@ -2,7 +2,6 @@ library flow.render.webgl_renderer;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math' as math;
 import 'dart:html' as html;
 
 import 'package:stagexl/stagexl.dart' as xl;
@@ -157,8 +156,6 @@ class WebglRenderer<T> extends WebRenderer<T> {
               child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2 - nodeStyle.borderSize, .0, pos.x + nodeStyle.borderSize, pos.y));
             }
           });
-
-        //child.setText('${nodeData.data}:${childPos.item1.data}\r${child.y}\r${state.actualHeight}\r${childPos.item5.actualHeight}');
       }
 
       container.addChild(sprite);
@@ -174,31 +171,29 @@ class WebglRenderer<T> extends WebRenderer<T> {
     rootItemValues.forEach((RenderState<T> entry) {
       final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
       final double borderSize = nodeStyle.borderSize * 2;
+      double tx, ty;
 
       if (entry.state.childIndex != childIndex) {
         if (tuple.item5 == HierarchyOrientation.VERTICAL) {
-          offsetTable[sprite] = new Tuple2<double, double>(xOffset + entry.state.actualWidth / 2 + borderSize, entry.state.height / 2 + borderSize);
-
-          tweens.add(new xl.Tween(sprite, .3)
-            ..animate.x.to(xOffset + entry.state.actualWidth / 2 + borderSize)
-            ..animate.y.to(entry.state.height / 2 + borderSize));
+          tx = xOffset + entry.state.actualWidth / 2 + borderSize;
+          ty = entry.state.height / 2 + borderSize;
 
           xOffset += entry.state.actualWidth + nodeStyle.margin.item4 + nodeStyle.margin.item2;
         } else {
-          offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2 + borderSize, xOffset + entry.state.actualHeight / 2 + borderSize);
-
-          tweens.add(new xl.Tween(sprite, .3)
-            ..animate.x.to(entry.state.width / 2 + borderSize)
-            ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize));
+          tx = entry.state.width / 2 + borderSize;
+          ty = xOffset + entry.state.actualHeight / 2 + borderSize;
 
           xOffset += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
-        final double dw = entry.state.width;
-        final double dh = entry.state.height;
+        offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
+
+        tweens.add(new xl.Tween(sprite, .3)
+          ..animate.x.to(tx)
+          ..animate.y.to(ty));
 
         sprite.data$sink.add(entry.nodeData.data);
-        sprite.size$sink.add(new Tuple2<double, double>(dw, dh));
+        sprite.size$sink.add(new Tuple2<double, double>(entry.state.width, entry.state.height));
 
         childIndex = entry.state.childIndex;
       }

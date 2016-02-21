@@ -37,6 +37,17 @@ class ItemRendererState<T> {
     other.connectorToY == connectorToY
   );
 
+  String toString() => <String, dynamic>{
+    'data': data,
+    'w': w,
+    'h': h,
+    'connectorFromX': connectorFromX,
+    'connectorFromY': connectorFromY,
+    'connectorToX': connectorToX,
+    'connectorToY': connectorToY,
+    'orientation': orientation
+  }.toString();
+
 }
 
 abstract class ItemRenderer<T> {

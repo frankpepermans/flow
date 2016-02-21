@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:async';
 import 'dart:html';
 
 import 'package:flow/flow.dart';
