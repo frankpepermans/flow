@@ -22,15 +22,17 @@ class WebglRenderer<T> extends WebRenderer<T> {
   final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
 
+  html.DivElement container;
   html.CanvasElement canvas;
   xl.Stage stage;
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
 
-  WebglRenderer(String selector) : super() {
-    canvas = html.querySelector(selector);
+  WebglRenderer(String containerSelector, String canvasSelector) : super() {
+    container = html.querySelector(containerSelector);
+    canvas = html.querySelector(canvasSelector);
 
-    html.window.onScroll.map((_) => true).listen(materializeStage$sink.add);
+    container.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
@@ -50,8 +52,8 @@ class WebglRenderer<T> extends WebRenderer<T> {
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
       .listen((Tuple2<int, int> tuple) {
-        canvas.width = math.max(canvas.parent.clientWidth, tuple.item1);
-        canvas.height = math.max(canvas.parent.clientHeight, tuple.item2);
+        canvas.width = tuple.item1;
+        canvas.height = tuple.item2;
 
         materializeStage$sink.add(true);
       });

@@ -7,7 +7,7 @@ import 'package:flow/flow.dart';
 import 'package:flow/src/render/webgl_renderer.dart';
 
 void main() {
-  final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-canvas');
+  final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-container', '#flow-canvas');
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
 
   hierarchy.setOrientation(HierarchyOrientation.VERTICAL);
