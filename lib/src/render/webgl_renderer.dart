@@ -23,8 +23,6 @@ class WebglRenderer<T> extends WebRenderer<T> {
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
 
   html.CanvasElement canvas;
-  html.CanvasRenderingContext2D canvasRenderingContext2D;
-  html.CanvasRenderingContext canvasRenderingContext3D;
   xl.Stage stage;
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
@@ -34,16 +32,10 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
     html.window.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
-    /*canvasRenderingContext3D = canvas.getContext3d();
-    canvasRenderingContext2D = canvas.context2D;
-
-    print('hasRenderingContext2D: ${(canvasRenderingContext2D != null)}');
-    print('hasRenderingContext3D: ${(canvasRenderingContext3D != null)}');*/
-
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
-        ..renderEngine = xl.RenderEngine.WebGL
+        ..renderEngine = xl.RenderEngine.Canvas2D
         ..inputEventMode = xl.InputEventMode.MouseAndTouch
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE
@@ -156,11 +148,11 @@ class WebglRenderer<T> extends WebRenderer<T> {
             if (orientation == HierarchyOrientation.VERTICAL) {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, entry.state.height / 2)));
 
-              child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2, pos.x, pos.y));
+              child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2 - nodeStyle.borderSize, pos.x, pos.y + nodeStyle.borderSize));
             } else {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(entry.state.width / 2, .0)));
 
-              child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2, .0, pos.x, pos.y));
+              child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2 - nodeStyle.borderSize, .0, pos.x + nodeStyle.borderSize, pos.y));
             }
           });
 
@@ -188,12 +180,16 @@ class WebglRenderer<T> extends WebRenderer<T> {
           tweens.add(new xl.Tween(sprite, .3)
             ..animate.x.to(xOffset + entry.state.actualWidth / 2 + borderSize)
             ..animate.y.to(entry.state.height / 2 + borderSize));
+
+          xOffset += nodeStyle.margin.item4 + nodeStyle.margin.item2;
         } else {
           offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2 + borderSize, xOffset + entry.state.actualHeight / 2 + borderSize);
 
           tweens.add(new xl.Tween(sprite, .3)
             ..animate.x.to(entry.state.width / 2 + borderSize)
             ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize));
+
+          xOffset += nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
         final double dw = entry.state.width;

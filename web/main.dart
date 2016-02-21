@@ -9,8 +9,10 @@ void main() {
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, HierarchyOrientation.VERTICAL, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
 
   hierarchy.add('A', className: 'top-level-node');
+  hierarchy.add('B', className: 'top-level-node');
 
   _addRandomChildren(hierarchy, 'A', 0);
+  _addRandomChildren(hierarchy, 'B', 0);
 }
 
 void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {

@@ -9,10 +9,12 @@ import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 
 class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
+  final xl.Sprite border = new xl.Sprite();
   final xl.Sprite container = new xl.Sprite();
   final xl.Shape connector = new xl.Shape();
 
   WebglItemRenderer() : super() {
+    addChild(border);
     addChild(connector);
     addChild(container);
 
@@ -35,64 +37,72 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   @override
   void update(ItemRendererState<T> state) {
     final xl.Graphics g = container.graphics;
+    final xl.Graphics h = border.graphics;
     final double dw = state.w;
     final double dh = state.h;
+    final double bw = state.w + 2 * nodeStyle.borderSize;
+    final double bh = state.h + 2 * nodeStyle.borderSize;
 
+    h.clear();
     g.clear();
+
+    h.beginPath();
+    h.rect(-bw/2, -bh/2, bw, bh);
+    h.closePath();
 
     g.beginPath();
     g.rect(-dw/2, -dh/2, dw, dh);
     g.closePath();
 
-    g.strokeColor(nodeStyle.border, nodeStyle.borderSize);
+    h.fillColor(nodeStyle.border);
     g.fillColor(nodeStyle.background);
   }
 
   void connect(ItemRendererState<T> state) {
-    final xl.Graphics h = connector.graphics;
+    final xl.Graphics g = connector.graphics;
     final double fx = state.connectorFromX;
     final double tx = state.connectorToX;
     final double fy = state.connectorFromY;
     final double ty = state.connectorToY;
     double n, o, p;
 
-    h.clear();
-    h.beginPath();
+    g.clear();
+    g.beginPath();
 
     if (orientation == HierarchyOrientation.VERTICAL) {
       n = nodeStyle.connectorHeight/2;
       o = fx < tx ? -nodeStyle.connectorWidth/2 : nodeStyle.connectorWidth/2;
       p = nodeStyle.padding.item1;
 
-      h.moveTo(fx + o, fy);
-      h.lineTo(fx + o, ty + p - n);
-      h.lineTo(tx + o, ty + p - n);
-      h.lineTo(tx + o, ty);
+      g.moveTo(fx + o, fy);
+      g.lineTo(fx + o, ty + p - n);
+      g.lineTo(tx + o, ty + p - n);
+      g.lineTo(tx + o, ty);
 
-      h.lineTo(tx - o, ty);
-      h.lineTo(tx - o, ty + p + n);
-      h.lineTo(fx - o, ty + p + n);
-      h.lineTo(fx - o, fy);
-      h.lineTo(fx + o, fy);
+      g.lineTo(tx - o, ty);
+      g.lineTo(tx - o, ty + p + n);
+      g.lineTo(fx - o, ty + p + n);
+      g.lineTo(fx - o, fy);
+      g.lineTo(fx + o, fy);
     } else {
       n = nodeStyle.connectorWidth/2;
       o = fy < ty ? -nodeStyle.connectorHeight/2 : nodeStyle.connectorHeight/2;
       p = nodeStyle.padding.item4;
 
-      h.moveTo(fx, fy + o);
-      h.lineTo(tx + p - n, fy + o);
-      h.lineTo(tx + p - n, ty + o);
-      h.lineTo(tx, ty + o);
+      g.moveTo(fx, fy + o);
+      g.lineTo(tx + p - n, fy + o);
+      g.lineTo(tx + p - n, ty + o);
+      g.lineTo(tx, ty + o);
 
-      h.lineTo(tx, ty - o);
-      h.lineTo(tx + p + n, ty - o);
-      h.lineTo(tx + p + n, fy - o);
-      h.lineTo(fx, fy - o);
-      h.lineTo(fx, fy + o);
+      g.lineTo(tx, ty - o);
+      g.lineTo(tx + p + n, ty - o);
+      g.lineTo(tx + p + n, fy - o);
+      g.lineTo(fx, fy - o);
+      g.lineTo(fx, fy + o);
     }
 
-    h.closePath();
+    g.closePath();
 
-    h.fillColor(nodeStyle.connectorBackground);
+    g.fillColor(nodeStyle.connectorBackground);
   }
 }
