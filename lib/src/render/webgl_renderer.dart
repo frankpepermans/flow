@@ -183,7 +183,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
             ..animate.x.to(xOffset + entry.state.actualWidth / 2 + borderSize)
             ..animate.y.to(entry.state.height / 2 + borderSize));
 
-          xOffset += nodeStyle.margin.item4 + nodeStyle.margin.item2;
+          xOffset += entry.state.actualWidth + nodeStyle.margin.item4 + nodeStyle.margin.item2;
         } else {
           offsetTable[sprite] = new Tuple2<double, double>(entry.state.width / 2 + borderSize, xOffset + entry.state.actualHeight / 2 + borderSize);
 
@@ -191,7 +191,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
             ..animate.x.to(entry.state.width / 2 + borderSize)
             ..animate.y.to(xOffset + entry.state.actualHeight / 2 + borderSize));
 
-          xOffset += nodeStyle.margin.item1 + nodeStyle.margin.item3;
+          xOffset += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
         final double dw = entry.state.width;
@@ -199,8 +199,6 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
         sprite.data$sink.add(entry.nodeData.data);
         sprite.size$sink.add(new Tuple2<double, double>(dw, dh));
-
-        xOffset += entry.state.actualWidth;
 
         childIndex = entry.state.childIndex;
       }
