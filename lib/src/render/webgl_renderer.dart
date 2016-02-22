@@ -17,6 +17,8 @@ import 'package:flow/src/digest.dart';
 
 class WebglRenderer<T> extends WebRenderer<T> {
 
+  static const int ANIMATION_TIME_MS = 300;
+
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
   final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
@@ -51,10 +53,25 @@ class WebglRenderer<T> extends WebRenderer<T> {
     rx.observable(screenSize$ctrl.stream)
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
       .listen((Tuple2<int, int> tuple) {
-        canvas.width = tuple.item1;
-        canvas.height = tuple.item2;
+        if (tuple.item1 < canvas.width) {
+          new Timer(const Duration(milliseconds: ANIMATION_TIME_MS), () {
+            canvas.width = tuple.item1;
+            materializeStage$sink.add(true);
+          });
+        } else {
+          canvas.width = tuple.item1;
+          materializeStage$sink.add(true);
+        }
 
-        materializeStage$sink.add(true);
+        if (tuple.item2 < canvas.height) {
+          new Timer(const Duration(milliseconds: ANIMATION_TIME_MS), () {
+            canvas.height = tuple.item2;
+            materializeStage$sink.add(true);
+          });
+        } else {
+          canvas.height = tuple.item2;
+          materializeStage$sink.add(true);
+        }
       });
 
     new rx.Observable<Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream, orientation$],
@@ -137,7 +154,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
         offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
-        tweens.add(new xl.Tween(child, .3)
+        tweens.add(new xl.Tween(child, ANIMATION_TIME_MS / 1000)
           ..animate.x.to(childPos.item2)
           ..animate.y.to(childPos.item3)
           ..onUpdate = () {
@@ -188,7 +205,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
         offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
 
-        tweens.add(new xl.Tween(sprite, .3)
+        tweens.add(new xl.Tween(sprite, ANIMATION_TIME_MS / 1000)
           ..animate.x.to(tx)
           ..animate.y.to(ty));
 
