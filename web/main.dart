@@ -9,7 +9,7 @@ void main() {
   final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-container', '#flow-canvas');
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
 
-  hierarchy.setOrientation(HierarchyOrientation.HORIZONTAL);
+  hierarchy.orientation = HierarchyOrientation.HORIZONTAL;
 
   hierarchy.add('A', className: 'top-level-node');
   hierarchy.add('B', className: 'top-level-node');
@@ -19,9 +19,9 @@ void main() {
 
   querySelector('#button-orientation').onClick.listen((_) {
     if (hierarchy.orientation == HierarchyOrientation.VERTICAL)
-      hierarchy.setOrientation(HierarchyOrientation.HORIZONTAL);
+      hierarchy.orientation = HierarchyOrientation.HORIZONTAL;
     else
-      hierarchy.setOrientation(HierarchyOrientation.VERTICAL);
+      hierarchy.orientation = HierarchyOrientation.VERTICAL;
   });
 }
 

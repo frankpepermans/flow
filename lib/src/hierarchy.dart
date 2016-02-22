@@ -27,6 +27,8 @@ class Hierarchy<T> {
 
   HierarchyOrientation get orientation => _orientation;
 
+  void set orientation(HierarchyOrientation orientation) => _orientation$ctrl.add(orientation);
+
   final StreamController<Tuple4<T, T, String, ItemRenderer<T>>> _addNodeData$ctrl = new StreamController<Tuple4<T, T, String, ItemRenderer<T>>>();
   final StreamController<T> _removeNodeData$ctrl = new StreamController<T>();
   final StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>> _retryNodeData$ctrl = new StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>>();
@@ -45,6 +47,13 @@ class Hierarchy<T> {
 
     topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, renderer.nodeStyle)
       ..init();
+
+    _orientation$ctrl.stream.distinct((HierarchyOrientation oA, HierarchyOrientation oB) => oA == oB).listen((HierarchyOrientation orientation) {
+      _orientation = orientation;
+
+      renderer.orientation$sink.add(orientation);
+      topLevelNodeData.orientationSink.add(orientation);
+    });
 
     new rx.Observable.zip(
     [
@@ -79,11 +88,14 @@ class Hierarchy<T> {
 
           itemRenderer.init(equalityHandler, renderer.nodeStyle);
 
-          rx.observable(_orientation$ctrl.stream).startWith(<HierarchyOrientation>[_orientation]).listen((HierarchyOrientation orientation) {
-            newNodeData.orientationSink.add(orientation);
+          rx.observable(_orientation$ctrl.stream)
+            .startWith(<HierarchyOrientation>[_orientation])
+            .distinct((HierarchyOrientation oA, HierarchyOrientation oB) => oA == oB)
+            .listen((HierarchyOrientation orientation) {
+              newNodeData.orientationSink.add(orientation);
 
-            itemRenderer.orientation$sink.add(orientation);
-          });
+              itemRenderer.orientation$sink.add(orientation);
+            });
 
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
@@ -99,11 +111,14 @@ class Hierarchy<T> {
 
           itemRenderer.init(equalityHandler, renderer.nodeStyle);
 
-          rx.observable(_orientation$ctrl.stream).startWith(<HierarchyOrientation>[_orientation]).listen((HierarchyOrientation orientation) {
-            newNodeData.orientationSink.add(orientation);
+          rx.observable(_orientation$ctrl.stream)
+            .startWith(<HierarchyOrientation>[_orientation])
+            .distinct((HierarchyOrientation oA, HierarchyOrientation oB) => oA == oB)
+            .listen((HierarchyOrientation orientation) {
+              newNodeData.orientationSink.add(orientation);
 
-            itemRenderer.orientation$sink.add(orientation);
-          });
+              itemRenderer.orientation$sink.add(orientation);
+            });
 
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
@@ -152,14 +167,6 @@ class Hierarchy<T> {
   void add(T data, {T parentData, String className, ItemRenderer<T> itemRenderer}) => _addNodeData$ctrl.add(new Tuple4<T, T, String, ItemRenderer<T>>(data, parentData, className, itemRenderer));
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
-
-  void setOrientation(HierarchyOrientation orientation) {
-    _orientation = orientation;
-
-    renderer.orientation$sink.add(orientation);
-    topLevelNodeData.orientationSink.add(orientation);
-    _orientation$ctrl.add(orientation);
-  }
 
   Future<Iterable<RenderState<T>>> _digest(Digestable digestable) {
     if (_currentDigest == null) _currentDigest = new Digest();
