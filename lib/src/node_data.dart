@@ -47,6 +47,9 @@ class NodeData<T> {
   NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.nodeStyle) {
     _orientation$ctrl.stream.listen((HierarchyOrientation orientation) {
       _orientation = orientation;
+
+      node.recursiveWidth$sink.add(.0);
+      node.recursiveHeight$sink.add(.0);
     });
   }
 
