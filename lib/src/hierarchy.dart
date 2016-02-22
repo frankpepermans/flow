@@ -83,6 +83,9 @@ class Hierarchy<T> {
             newNodeData.orientationSink.add(orientation);
 
             itemRenderer.orientation$sink.add(orientation);
+
+            newNodeData.node.recursiveWidth$sink.add(.0);
+            newNodeData.node.recursiveHeight$sink.add(.0);
           });
 
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
@@ -103,6 +106,9 @@ class Hierarchy<T> {
             newNodeData.orientationSink.add(orientation);
 
             itemRenderer.orientation$sink.add(orientation);
+
+            newNodeData.node.recursiveWidth$sink.add(.0);
+            newNodeData.node.recursiveHeight$sink.add(.0);
           });
 
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
@@ -159,6 +165,9 @@ class Hierarchy<T> {
     renderer.orientation$sink.add(orientation);
     topLevelNodeData.orientationSink.add(orientation);
     _orientation$ctrl.add(orientation);
+
+    topLevelNodeData.node.recursiveWidth$sink.add(.0);
+    topLevelNodeData.node.recursiveHeight$sink.add(.0);
   }
 
   Future<Iterable<RenderState<T>>> _digest(Digestable digestable) {
