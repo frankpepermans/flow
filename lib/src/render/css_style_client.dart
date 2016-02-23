@@ -7,40 +7,40 @@ import 'package:tuple/tuple.dart';
 import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/hierarchy.dart' show NodeStyle;
 
-import 'package:flow/src/force_print.dart' show fprint;
-
 class CssStyleClient extends StyleClient {
 
   Map<String, html.CssStyleDeclaration> _cssStyleDeclarations;
 
   CssStyleClient() {
     _cssStyleDeclarations = <String, html.CssStyleDeclaration>{};
-
-    html.document.styleSheets.forEach((html.StyleSheet css) {
-      if (css is html.CssStyleSheet) {
-        css.cssRules.forEach((html.CssRule rule) {
-          if (rule is html.CssStyleRule) {
-            _cssStyleDeclarations[rule.selectorText.split('.').last] = new html.CssStyleDeclaration.css(rule.cssText.replaceAllMapped(new RegExp('${rule.selectorText}[\\s]*{[\\s]*([^}]+)}'), (Match match) => match.group(1)));
-          }
-        });
-      }
-    });
   }
 
   final Map<String, NodeStyle> _cachedNodeStyles = <String, NodeStyle>{};
 
   @override
   NodeStyle getNodeStyle(String className) {
-    if (!_cachedNodeStyles.containsKey(className)) _cachedNodeStyles[className] = new NodeStyle(
-        getNodeMargin(className),
-        getNodePadding(className),
-        getNodeBackgroundColor(className),
-        getNodeBorderColor(className),
-        getNodeBorderSize(className),
-        getConnectorBackgroundColor(className),
-        getConnectorWidth(className),
-        getConnectorHeight(className)
-    );
+    if (!_cachedNodeStyles.containsKey(className)) {
+      html.document.styleSheets.forEach((html.StyleSheet css) {
+        if (css is html.CssStyleSheet) {
+          css.cssRules.forEach((html.CssRule rule) {
+            if (rule is html.CssStyleRule && (rule.selectorText == '.$className' || rule.selectorText == '.${className}-connector')) {
+              _cssStyleDeclarations[rule.selectorText.split('.').last] = new html.CssStyleDeclaration.css(rule.cssText.replaceAllMapped(new RegExp('${rule.selectorText}[\\s]*{[\\s]*([^}]+)}'), (Match match) => match.group(1)));
+            }
+          });
+        }
+      });
+
+      _cachedNodeStyles[className] = new NodeStyle(
+          getNodeMargin(className),
+          getNodePadding(className),
+          getNodeBackgroundColor(className),
+          getNodeBorderColor(className),
+          getNodeBorderSize(className),
+          getConnectorBackgroundColor(className),
+          getConnectorWidth(className),
+          getConnectorHeight(className)
+      );
+    }
 
     return _cachedNodeStyles[className];
   }

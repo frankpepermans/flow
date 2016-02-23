@@ -62,6 +62,7 @@ abstract class ItemRenderer<T> {
 
   bool get isInitialized => _isInitialized;
   Stream<Tuple2<double, double>> get resize$ => _resize$ctrl.stream;
+  Stream<String> get className$ => _className$ctrl.stream;
 
   Sink<T> get data$sink => _data$ctrl.sink;
   Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
@@ -78,7 +79,7 @@ abstract class ItemRenderer<T> {
   final StreamController<Tuple2<double, double>> _resize$ctrl = new StreamController<Tuple2<double, double>>.broadcast();
   final StreamController<bool> _renderingRequired$ctrl = new StreamController<bool>();
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
-  final StreamController<String> _className$ctrl = new StreamController<String>();
+  final StreamController<String> _className$ctrl = new StreamController<String>.broadcast();
 
   int renderCount = 0;
 

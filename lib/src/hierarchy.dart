@@ -91,6 +91,10 @@ class Hierarchy<T> {
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
 
+          itemRenderer.className$.listen((String className) {
+            node.className$sink.add(className);
+          });
+
           itemRenderer.className$sink.add(className);
 
           rx.observable(_orientation$ctrl.stream)
@@ -115,6 +119,10 @@ class Hierarchy<T> {
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
+
+          itemRenderer.className$.listen((String className) {
+            node.className$sink.add(className);
+          });
 
           itemRenderer.className$sink.add(className);
 
@@ -149,8 +157,6 @@ class Hierarchy<T> {
 
         node?.init();
         newNodeData.init();
-
-        node?.className$sink?.add(className);
 
         modifier.add(newNodeData);
       } else {

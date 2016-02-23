@@ -56,6 +56,13 @@ html, body {
     border: 2px solid rgb(47, 79, 79);
 }
 
+.flow-node-hover {
+    margin: 10px;
+    padding: 10px;
+    background: rgb(255, 196, 222);
+    border: 2px solid rgb(47, 79, 79);
+}
+
 .flow-top-level-node-connector {
     background: rgb(33, 127, 80);
     width: 1px;
@@ -63,6 +70,12 @@ html, body {
 }
 
 .flow-node-connector {
+    background: rgb(255, 127, 80);
+    width: 1px;
+    height: 1px;
+}
+
+.flow-node-hover-connector {
     background: rgb(255, 127, 80);
     width: 1px;
     height: 1px;

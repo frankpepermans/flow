@@ -32,6 +32,14 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
       resize$sink.add(views[viewIndex]);
     });
+
+    container.onMouseOver.listen((_) {
+      className$sink.add('flow-node-hover');
+    });
+
+    container.onMouseOut.listen((_) {
+      className$sink.add('flow-node');
+    });
   }
 
   @override
