@@ -3,16 +3,16 @@ import 'dart:html';
 
 import 'package:flow/flow.dart';
 
-import 'package:flow/src/render/webgl_renderer.dart';
+import 'package:flow/src/render/stage_xl_renderer.dart';
 
 void main() {
-  final WebglRenderer<String> renderer = new WebglRenderer<String>('#flow-container', '#flow-canvas');
+  final StageXLRenderer<String> renderer = new StageXLRenderer<String>('#flow-container', '#flow-canvas');
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
 
   hierarchy.orientation = HierarchyOrientation.HORIZONTAL;
 
-  hierarchy.add('A', className: 'top-level-node');
-  hierarchy.add('B', className: 'top-level-node');
+  hierarchy.add('A', className: 'flow-top-level-node');
+  hierarchy.add('B', className: 'flow-top-level-node');
 
   _addRandomChildren(hierarchy, 'A', 0);
   _addRandomChildren(hierarchy, 'B', 0);

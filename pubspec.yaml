@@ -8,6 +8,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
+  browser: any
   stagexl: any
   tuple: any
   stream_channel: any
@@ -19,5 +20,6 @@ dev_dependencies:
 
 transformers:
 - $dart2js:
-    checked: true
-    minify: false
+    checked: false
+    minify: true
+    commandLineOptions: ['--trust-type-annotations', '--trust-primitives']

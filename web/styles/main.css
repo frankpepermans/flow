@@ -21,7 +21,7 @@ html, body {
 
 .flow-controls > * {
     margin: 15px;
-    background-color: darkslategray;
+    background-color: rgb(47, 79, 79);
     color: white;
 }
 
@@ -38,19 +38,32 @@ html, body {
     overflow: auto;
 }
 
-.flow-node {
-    margin: 10px;
-    padding: 10px;
-    background: lightsteelblue;
-    border: 2px solid darkslategray;
-}
-
 .flow-canvas {
     overflow: scroll;
 }
 
+.flow-top-level-node {
+    margin: 10px;
+    padding: 10px;
+    background: rgb(33, 196, 222);
+    border: 2px solid rgb(47, 79, 79);
+}
+
+.flow-node {
+    margin: 10px;
+    padding: 10px;
+    background: rgb(176, 196, 222);
+    border: 2px solid rgb(47, 79, 79);
+}
+
+.flow-top-level-node-connector {
+    background: rgb(33, 127, 80);
+    width: 1px;
+    height: 1px;
+}
+
 .flow-node-connector {
-    background: coral;
+    background: rgb(255, 127, 80);
     width: 1px;
     height: 1px;
 }

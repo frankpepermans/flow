@@ -2,11 +2,10 @@ library flow.render.renderer;
 
 import 'dart:async';
 
-import 'package:tuple/tuple.dart';
-
 import 'package:flow/src/digest.dart';
-import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 import 'package:flow/src/render/item_renderer.dart';
+import 'package:flow/src/render/style_client.dart';
 
 export 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
 
@@ -14,7 +13,7 @@ abstract class Renderer<T> {
 
   Stream<num> get animationStream;
 
-  NodeStyle nodeStyle;
+  StyleClient get styleClient;
 
   Sink<Iterable<RenderState<T>>> get state$sink => _state$ctrl.sink;
   Stream<Iterable<RenderState<T>>> get state$ => _state$ctrl.stream;
@@ -30,15 +29,5 @@ abstract class Renderer<T> {
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
-
-  Tuple4<double, double, double, double> getNodeMargin();
-  Tuple4<double, double, double, double> getNodePadding();
-  int getNodeBackgroundColor();
-  int getNodeBorderColor();
-  double getNodeBorderSize();
-
-  int getConnectorBackgroundColor();
-  double getConnectorWidth();
-  double getConnectorHeight();
 
 }

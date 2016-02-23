@@ -1,4 +1,4 @@
-library flow.render.webgl_renderer;
+library flow.render.stage_xl_renderer;
 
 import 'dart:async';
 import 'dart:collection';
@@ -10,12 +10,13 @@ import 'package:tuple/tuple.dart';
 
 import 'package:flow/src/render/web_renderer.dart';
 import 'package:flow/src/render/item_renderer.dart';
-import 'package:flow/src/render/webgl_item_renderer.dart';
+import 'package:flow/src/render/stage_xl_item_renderer.dart';
 import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
-class WebglRenderer<T> extends WebRenderer<T> {
+class StageXLRenderer<T> extends WebRenderer<T> {
 
   static const int ANIMATION_TIME_MS = 300;
 
@@ -29,7 +30,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
 
-  WebglRenderer(String containerSelector, String canvasSelector) : super() {
+  StageXLRenderer(String containerSelector, String canvasSelector) : super() {
     container = html.querySelector(containerSelector);
     canvas = html.querySelector(canvasSelector);
 
@@ -99,7 +100,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
       });
   }
 
-  ItemRenderer<T> newDefaultItemRendererInstance() => new WebglItemRenderer();
+  ItemRenderer<T> newDefaultItemRendererInstance() => new StageXLItemRenderer();
 
   Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable) {
     final ItemRenderer<T> sprite = nodeData.itemRenderer;
@@ -142,13 +143,14 @@ class WebglRenderer<T> extends WebRenderer<T> {
 
       if (isRoot) rootItems[entry.nodeData] = entry;
 
-      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
+      final StageXLItemRenderer<T> sprite = entry.nodeData.itemRenderer;
       final xl.DisplayObjectContainer container = isRoot ? topContainer : entry.parentNodeData.itemRenderer;
-      final WebglItemRenderer<T> child = (childPos != null) ? childPos.item1.itemRenderer : null;
+      final StageXLItemRenderer<T> child = (childPos != null) ? childPos.item1.itemRenderer : null;
 
       parentMap[sprite] = container;
 
       if (childPos != null) {
+        final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.childData.item5.className);
         final double dw = childPos.item5.width;
         final double dh = childPos.item5.height;
 
@@ -186,7 +188,8 @@ class WebglRenderer<T> extends WebRenderer<T> {
     int childIndex = -1;
 
     rootItemValues.forEach((RenderState<T> entry) {
-      final WebglItemRenderer<T> sprite = entry.nodeData.itemRenderer;
+      final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.state.className);
+      final StageXLItemRenderer<T> sprite = entry.nodeData.itemRenderer;
       final double borderSize = nodeStyle.borderSize * 2;
       double tx, ty;
 
@@ -217,6 +220,7 @@ class WebglRenderer<T> extends WebRenderer<T> {
     });
 
     data.where((RenderState<T> entry) => entry.childData !=  null).forEach((RenderState<T> entry) {
+      final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.childData.item5.className);
       final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, parentMap, offsetTable);
       final double borderSize = nodeStyle.borderSize * 2;
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;

@@ -1,19 +1,19 @@
-library flow.render.webgl_item_renderer;
+library flow.render.stage_xl_item_renderer;
 
 import 'package:stagexl/stagexl.dart' as xl;
 
 import 'package:tuple/tuple.dart';
 
 import 'package:flow/src/render/item_renderer.dart';
-import 'package:flow/src/hierarchy.dart' show HierarchyOrientation;
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
-class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
+class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
   final xl.Sprite border = new xl.Sprite();
   final xl.Sprite container = new xl.Sprite();
   final xl.Shape connector = new xl.Shape();
 
-  WebglItemRenderer() : super() {
+  StageXLItemRenderer() : super() {
     addChild(border);
     addChild(connector);
     addChild(container);
@@ -36,6 +36,7 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
   @override
   void update(ItemRendererState<T> state) {
+    final NodeStyle nodeStyle = styleClient.getNodeStyle(state.className);
     final xl.Graphics g = container.graphics;
     final xl.Graphics h = border.graphics;
     final double dw = state.w;
@@ -59,6 +60,7 @@ class WebglItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   }
 
   void connect(ItemRendererState<T> state) {
+    final NodeStyle nodeStyle = styleClient.getNodeStyle(state.className);
     final xl.Graphics g = connector.graphics;
     final double fx = state.connectorFromX;
     final double tx = state.connectorToX;

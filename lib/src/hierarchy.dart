@@ -13,6 +13,8 @@ import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
 import 'package:quiver_hashcode/hashcode.dart' as quiver;
 
+import 'package:flow/src/force_print.dart';
+
 typedef bool NodeEqualityHandler<T>(T dataA, T dataB);
 typedef int ChildCompareHandler<T>(dataA, dataB);
 
@@ -45,7 +47,7 @@ class Hierarchy<T> {
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
-    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, renderer.nodeStyle)
+    topLevelNodeData = new NodeData<T>(null, new Node(), childCompareHandler, null, renderer.styleClient)
       ..init();
 
     _orientation$ctrl.stream.distinct((HierarchyOrientation oA, HierarchyOrientation oB) => oA == oB).listen((HierarchyOrientation orientation) {
@@ -65,6 +67,7 @@ class Hierarchy<T> {
       _nodeData$ctrl.stream
     ], (Tuple5<bool, T, T, String, ItemRenderer<T>> tuple, UnmodifiableListView<NodeData<T>> list) {
       final List<NodeData<T>> modifier = list.toList();
+      final String className = (tuple.item4 != null) ? tuple.item4 : 'flow-node';
 
       if (tuple.item1) {
         Node node;
@@ -84,9 +87,11 @@ class Hierarchy<T> {
         } else {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.nodeStyle);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
 
-          itemRenderer.init(equalityHandler, renderer.nodeStyle);
+          itemRenderer.init(equalityHandler, renderer.styleClient);
+
+          itemRenderer.className$sink.add(className);
 
           rx.observable(_orientation$ctrl.stream)
             .startWith(<HierarchyOrientation>[_orientation])
@@ -107,9 +112,11 @@ class Hierarchy<T> {
         if (parentNodeData != null) {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
-          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.nodeStyle);
+          newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
 
-          itemRenderer.init(equalityHandler, renderer.nodeStyle);
+          itemRenderer.init(equalityHandler, renderer.styleClient);
+
+          itemRenderer.className$sink.add(className);
 
           rx.observable(_orientation$ctrl.stream)
             .startWith(<HierarchyOrientation>[_orientation])
@@ -136,12 +143,14 @@ class Hierarchy<T> {
           .flatMap((Digestable digestable) => new Stream.fromFuture(_digest(digestable)))
           .listen(renderer.state$sink.add);
 
-        if (tuple.item4 != null) newNodeData.node.className$sink.add(tuple.item4);
+        newNodeData.node.className$sink.add(className);
 
         newNodeData.node.isOpen$sink.add(isOpen);
 
         node?.init();
         newNodeData.init();
+
+        node?.className$sink?.add(className);
 
         modifier.add(newNodeData);
       } else {

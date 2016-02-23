@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/render/item_renderer.dart';
+import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
 import 'package:rxdart/rxdart.dart' as rx;
@@ -40,11 +41,11 @@ class NodeData<T> {
   final T data;
   final Node node;
   final ChildCompareHandler childCompareHandler;
-  final NodeStyle nodeStyle;
+  final StyleClient styleClient;
 
   HierarchyOrientation _orientation;
 
-  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.nodeStyle) {
+  NodeData(this.data, this.node, this.childCompareHandler, this.itemRenderer, this.styleClient) {
     _orientation$ctrl.stream.listen((HierarchyOrientation orientation) {
       _orientation = orientation;
 
@@ -100,6 +101,7 @@ class NodeData<T> {
               }),
               rx.observable(_orientation$ctrl.stream).startWith(<HierarchyOrientation>[_orientation])
             ], (NodeState state, NodeState childState, UnmodifiableListView<NodeState> childrenStates, HierarchyOrientation orientation) {
+              final NodeStyle nodeStyle = styleClient.getNodeStyle(state.className);
               Tuple2<double, double> dwh = new Tuple2<double, double>(.0, .0);
               double x = .0, y = .0;
 
@@ -125,6 +127,8 @@ class NodeData<T> {
 
               return new Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation>(tuple.item1, x, y, dwh, childrenStates, childState, orientation);
             }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation> tuple) {
+              final NodeStyle nodeStyle = styleClient.getNodeStyle(tuple.item6.className);
+
               _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
 
               if (tuple.item7 == HierarchyOrientation.VERTICAL) {
