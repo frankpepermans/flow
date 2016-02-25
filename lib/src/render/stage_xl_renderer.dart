@@ -175,9 +175,13 @@ class StageXLRenderer<T> extends WebRenderer<T> {
               child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2 - nodeStyle.borderSize, .0, pos.x + nodeStyle.borderSize, pos.y));
             }
           });
+
+        if (!sprite.contains(child) && entry.state.isOpen) sprite.addChild(child);
+        if (sprite.contains(child) && !entry.state.isOpen) sprite.removeChild(child);
       }
 
-      container.addChild(sprite);
+      if (!container.contains(sprite) && (isRoot || entry.state.isOpen)) container.addChild(sprite);
+      //if (container.contains(sprite) && !isRoot && !entry.state.isOpen) container.removeChild(sprite);
     });
 
     final List<RenderState<T>> rootItemValues = rootItems.values.toList();

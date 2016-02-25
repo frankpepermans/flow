@@ -77,7 +77,6 @@ class Node {
   }
 
   void init() {
-    _isOpenController.add(false);
     _childIndexController.add(0);
     _recursiveWidthController.add(.0);
     _recursiveHeightController.add(.0);

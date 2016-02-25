@@ -74,7 +74,6 @@ class Hierarchy<T> {
         NodeData<T> newNodeData;
         NodeData<T> parentNodeData;
         ItemRenderer<T> itemRenderer;
-        bool isOpen = false;
 
         if (tuple.item3 != null) {
           parentNodeData = list.firstWhere((NodeData<T> nodeData) => equalityHandler(nodeData.data, tuple.item3), orElse: () => null);
@@ -88,6 +87,8 @@ class Hierarchy<T> {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
+
+          newNodeData.node.isOpen$sink.add(true);
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
 
@@ -108,8 +109,6 @@ class Hierarchy<T> {
 
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
-          isOpen = true;
-
           topLevelNodeData.addChildSink.add(newNodeData);
         }
 
@@ -117,6 +116,8 @@ class Hierarchy<T> {
           itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
           node = new Node();
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
+
+          newNodeData.node.isOpen$sink.add(false);
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
 
@@ -152,8 +153,6 @@ class Hierarchy<T> {
           .listen(renderer.state$sink.add);
 
         newNodeData.node.className$sink.add(className);
-
-        newNodeData.node.isOpen$sink.add(isOpen);
 
         node?.init();
         newNodeData.init();

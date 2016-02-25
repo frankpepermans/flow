@@ -12,6 +12,8 @@ import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 import 'package:rxdart/rxdart.dart' as rx;
 import 'package:tuple/tuple.dart';
 
+import 'package:flow/src/force_print.dart';
+
 typedef int ChildCompareHandler<T>(dataA, dataB);
 
 enum NodeDataChildOperation {
@@ -60,6 +62,8 @@ class NodeData<T> {
         node.width$sink.add(tuple.item1);
         node.height$sink.add(tuple.item2);
       });
+
+      itemRenderer.isOpen$.listen((bool isOpen) => node.isOpen$sink.add(isOpen));
     }
 
     new rx.Observable<UnmodifiableListView<NodeData<T>>>.zip(
@@ -105,24 +109,26 @@ class NodeData<T> {
               Tuple2<double, double> dwh = new Tuple2<double, double>(.0, .0);
               double x = .0, y = .0;
 
-              if (orientation == HierarchyOrientation.VERTICAL) {
-                childrenStates.forEach((NodeState entryNodeState) => dwh = new Tuple2<double, double>(dwh.item1 + entryNodeState.actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4, math.max(dwh.item2, entryNodeState.height)));
+              if (state.isOpen) {
+                if (orientation == HierarchyOrientation.VERTICAL) {
+                  childrenStates.forEach((NodeState entryNodeState) => dwh = new Tuple2<double, double>(dwh.item1 + entryNodeState.actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4, math.max(dwh.item2, entryNodeState.height)));
 
-                x = -dwh.item1/2 + childState.actualWidth/2;
-                y = state.height/2 + dwh.item2/2 + nodeStyle.margin.item1 + nodeStyle.margin.item3;
+                  x = -dwh.item1/2 + childState.actualWidth/2;
+                  y = state.height/2 + dwh.item2/2 + nodeStyle.margin.item1 + nodeStyle.margin.item3;
 
-                for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4;
+                  for (int i=0; i<childState.childIndex; i++) x += childrenStates[i].actualWidth + nodeStyle.margin.item2 + nodeStyle.margin.item4;
 
-                x += nodeStyle.margin.item4;
-              } else {
-                childrenStates.forEach((NodeState entryNodeState) => dwh = new Tuple2<double, double>(math.max(dwh.item1, entryNodeState.width), dwh.item2 + entryNodeState.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3));
+                  x += nodeStyle.margin.item4;
+                } else {
+                  childrenStates.forEach((NodeState entryNodeState) => dwh = new Tuple2<double, double>(math.max(dwh.item1, entryNodeState.width), dwh.item2 + entryNodeState.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3));
 
-                x = state.width/2 + dwh.item1/2 + nodeStyle.margin.item2 + nodeStyle.margin.item4;
-                y = -dwh.item2/2 + childState.actualHeight/2;
+                  x = state.width/2 + dwh.item1/2 + nodeStyle.margin.item2 + nodeStyle.margin.item4;
+                  y = -dwh.item2/2 + childState.actualHeight/2;
 
-                for (int i=0; i<childState.childIndex; i++) y += childrenStates[i].actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
+                  for (int i=0; i<childState.childIndex; i++) y += childrenStates[i].actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
 
-                y += nodeStyle.margin.item1;
+                  y += nodeStyle.margin.item1;
+                }
               }
 
               return new Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation>(tuple.item1, x, y, dwh, childrenStates, childState, orientation);

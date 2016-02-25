@@ -24,6 +24,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
       const Tuple2<double, double>(160.0, 160.0)
     ];
     int viewIndex = 0;
+    bool isOpen = false;
 
     container.onMouseClick.listen((_) {
       viewIndex++;
@@ -31,6 +32,12 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
       if (viewIndex >= views.length) viewIndex = 0;
 
       resize$sink.add(views[viewIndex]);
+    });
+
+    container.onMouseRightClick.listen((_) {
+      isOpen = !isOpen;
+
+      isOpen$sink.add(isOpen);
     });
 
     container.onMouseOver.listen((_) {
