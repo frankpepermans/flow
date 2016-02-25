@@ -173,6 +173,8 @@ class NodeData<T> {
         }
 
         _children$ctrl.add(list);
+
+        itemRenderer?.childCount$sink?.add(len);
       }
     });
 

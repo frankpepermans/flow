@@ -16,6 +16,7 @@ class ItemRendererState<T> {
   final double connectorToX, connectorToY;
   final HierarchyOrientation orientation;
   final String className;
+  final int childCount;
 
   ItemRendererState(
     this.data,
@@ -26,7 +27,8 @@ class ItemRendererState<T> {
     this.connectorToX,
     this.connectorToY,
     this.orientation,
-    this.className
+    this.className,
+    this.childCount
   );
 
   bool equals(ItemRendererState<T> other, NodeEqualityHandler<T> equalityHandler) => (
@@ -38,7 +40,8 @@ class ItemRendererState<T> {
     other.connectorFromY == connectorFromY &&
     other.connectorToX == connectorToX &&
     other.connectorToY == connectorToY &&
-    other.className == className
+    other.className == className &&
+    other.childCount == childCount
   );
 
   String toString() => <String, dynamic>{
@@ -50,7 +53,8 @@ class ItemRendererState<T> {
     'connectorToX': connectorToX,
     'connectorToY': connectorToY,
     'orientation': orientation,
-    'className': className
+    'className': className,
+    'childCount': childCount
   }.toString();
 
 }
@@ -72,6 +76,7 @@ abstract class ItemRenderer<T> {
   Sink<Tuple2<double, double>> get size$sink => _size$ctrl.sink;
   Sink<Tuple2<double, double>> get resize$sink => _resize$ctrl.sink;
   Sink<bool> get isOpen$sink => _isOpen$ctrl.sink;
+  Sink<int> get childCount$sink => _childCount$ctrl.sink;
 
   Stream<bool> get renderingRequired$ => _renderingRequired$ctrl.stream;
 
@@ -83,6 +88,7 @@ abstract class ItemRenderer<T> {
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
   final StreamController<String> _className$ctrl = new StreamController<String>.broadcast();
   final StreamController<bool> _isOpen$ctrl = new StreamController<bool>.broadcast();
+  final StreamController<int> _childCount$ctrl = new StreamController<int>.broadcast();
 
   int renderCount = 0;
 
@@ -94,8 +100,9 @@ abstract class ItemRenderer<T> {
       rx.observable(_connector$ctrl.stream).startWith(const <Tuple4<double, double, double, double>>[const Tuple4<double, double, double, double>(.0, .0, .0, .0)]),
       _size$ctrl.stream,
       _orientation$ctrl.stream,
-      _className$ctrl.stream
-    ], (T data, Tuple4<double, double, double, double> connector, Tuple2<double, double> size, HierarchyOrientation orientation, String className) => new ItemRendererState<T>(data, size.item1, size.item2, connector.item1, connector.item2, connector.item3, connector.item4, orientation, className))
+      _className$ctrl.stream,
+      rx.observable(_childCount$ctrl.stream).startWith(const <int>[0])
+    ], (T data, Tuple4<double, double, double, double> connector, Tuple2<double, double> size, HierarchyOrientation orientation, String className, int childCount) => new ItemRendererState<T>(data, size.item1, size.item2, connector.item1, connector.item2, connector.item3, connector.item4, orientation, className, childCount))
       .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) => stateB.equals(stateA, equalityHandler))
       .listen((ItemRendererState<T> state) {
         update(state);
