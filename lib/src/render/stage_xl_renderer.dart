@@ -176,12 +176,11 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             }
           });
 
-        if (!sprite.contains(child) && entry.state.isOpen) sprite.addChild(child);
-        if (sprite.contains(child) && !entry.state.isOpen) sprite.removeChild(child);
+        if (entry.state.isOpen && !sprite.contains(child)) sprite.addChild(child);
+        else if (!entry.state.isOpen && sprite.contains(child)) sprite.removeChild(child);
       }
 
-      if (!container.contains(sprite) && (isRoot || entry.state.isOpen)) container.addChild(sprite);
-      //if (container.contains(sprite) && !isRoot && !entry.state.isOpen) container.removeChild(sprite);
+      if (isRoot && !container.contains(sprite)) container.addChild(sprite);
     });
 
     final List<RenderState<T>> rootItemValues = rootItems.values.toList();
