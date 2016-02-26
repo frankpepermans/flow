@@ -75,18 +75,22 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         }
       });
 
-    new rx.Observable<Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream, orientation$],
-      (Iterable<RenderState<T>> data, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable, Map<NodeData<T>, RenderState<T>> rootItems, HierarchyOrientation orientation) {
-        return new Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation>(data, parentMap, offsetTable, rootItems, orientation);
-      })
-        .debounce(const Duration(milliseconds: 20))
-        .map(_invalidate)
-        .flatMapLatest((List<xl.Tween> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
-        .listen((xl.Tween animation) {
-          stage.juggler.add(animation);
+    new rx.Observable<_InvalidationTuple<T>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream, orientation$],
+        (
+          Iterable<RenderState<T>> data,
+          Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap,
+          Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable,
+          Map<NodeData<T>, RenderState<T>> rootItems,
+          HierarchyOrientation orientation
+        ) => new _InvalidationTuple<T>(data, parentMap, offsetTable, rootItems, orientation))
+          .debounce(const Duration(milliseconds: 20))
+          .map(_invalidate)
+          .flatMapLatest((List<xl.Tween> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
+          .listen((xl.Tween animation) {
+            stage.juggler.add(animation);
 
-          materializeStage$sink.add(true);
-        });
+            materializeStage$sink.add(true);
+          });
 
     _parentMap$ctrl.add(<ItemRenderer<T>, xl.DisplayObjectContainer>{});
     _offsetTable$ctrl.add(<ItemRenderer<T>, Tuple2<double, double>>{});
@@ -129,32 +133,28 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     return new Tuple2<double, double>(offsetX, offsetY);
   }
 
-  List<xl.Tween> _invalidate(Tuple5<Iterable<RenderState<T>>, Map<ItemRenderer<T>, xl.DisplayObjectContainer>, Map<ItemRenderer<T>, Tuple2<double, double>>, Map<NodeData<T>, RenderState<T>>, HierarchyOrientation> tuple) {
-    final Iterable<RenderState<T>> data = tuple.item1;
-    final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap = tuple.item2;
-    final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable = tuple.item3;
-    final Map<NodeData<T>, RenderState<T>> rootItems = tuple.item4;
+  List<xl.Tween> _invalidate(_InvalidationTuple<T> tuple) {
     final List<xl.Tween> tweens = <xl.Tween>[];
     int dw = 0, dh = 0;
 
-    data.forEach((RenderState<T> entry) {
+    tuple.data.forEach((RenderState<T> entry) {
       final Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos = entry.childData;
       final bool isRoot = entry.parentNodeData.data == null;
 
-      if (isRoot) rootItems[entry.nodeData] = entry;
+      if (isRoot) tuple.rootItems[entry.nodeData] = entry;
 
       final StageXLItemRenderer<T> sprite = entry.nodeData.itemRenderer;
       final xl.DisplayObjectContainer container = isRoot ? topContainer : entry.parentNodeData.itemRenderer;
       final StageXLItemRenderer<T> child = (childPos != null) ? childPos.item1.itemRenderer : null;
 
-      parentMap[sprite] = container;
+      tuple.parentMap[sprite] = container;
 
       if (childPos != null) {
         final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.childData.item5.className);
         final double dw = childPos.item5.width;
         final double dh = childPos.item5.height;
 
-        offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
+        tuple.offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
         tweens.add(new xl.Tween(child, ANIMATION_TIME_MS / 1000)
           ..animate.x.to(childPos.item2)
@@ -165,7 +165,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             child.data$sink.add(childPos.item1.data);
             child.size$sink.add(new Tuple2<double, double>(dw, dh));
 
-            if (tuple.item5 == HierarchyOrientation.VERTICAL) {
+            if (tuple.orientation == HierarchyOrientation.VERTICAL) {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, entry.state.height / 2)));
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2 - nodeStyle.borderSize, pos.x, pos.y + nodeStyle.borderSize));
@@ -183,7 +183,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
       if (isRoot && !container.contains(sprite)) container.addChild(sprite);
     });
 
-    final List<RenderState<T>> rootItemValues = rootItems.values.toList();
+    final List<RenderState<T>> rootItemValues = tuple.rootItems.values.toList();
 
     rootItemValues.sort((RenderState<T> entryA, RenderState<T> entryB) => entryA.state.childIndex.compareTo(entryB.state.childIndex));
 
@@ -197,7 +197,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
       double tx, ty;
 
       if (entry.state.childIndex != childIndex) {
-        if (tuple.item5 == HierarchyOrientation.VERTICAL) {
+        if (tuple.orientation == HierarchyOrientation.VERTICAL) {
           tx = xOffset + entry.state.actualWidth / 2 + borderSize;
           ty = entry.state.height / 2 + borderSize;
 
@@ -209,7 +209,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           xOffset += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
-        offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
+        tuple.offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
 
         tweens.add(new xl.Tween(sprite, ANIMATION_TIME_MS / 1000)
           ..animate.x.to(tx)
@@ -222,9 +222,9 @@ class StageXLRenderer<T> extends WebRenderer<T> {
       }
     });
 
-    data.where((RenderState<T> entry) => entry.childData !=  null).forEach((RenderState<T> entry) {
+    tuple.data.where((RenderState<T> entry) => entry.childData !=  null).forEach((RenderState<T> entry) {
       final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.childData.item5.className);
-      final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, parentMap, offsetTable);
+      final Tuple2<double, double> selfOffset = calculateOffset(entry.nodeData, tuple.parentMap, tuple.offsetTable);
       final double borderSize = nodeStyle.borderSize * 2;
       double offsetX = selfOffset.item1, offsetY = selfOffset.item2;
 
@@ -241,4 +241,21 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
     return tweens;
   }
+}
+
+class _InvalidationTuple<T> {
+
+  final Iterable<RenderState<T>> data;
+  final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap;
+  final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable;
+  final Map<NodeData<T>, RenderState<T>> rootItems;
+  final HierarchyOrientation orientation;
+
+  _InvalidationTuple(
+    this.data,
+    this.parentMap,
+    this.offsetTable,
+    this.rootItems,
+    this.orientation
+  );
 }

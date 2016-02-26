@@ -131,20 +131,18 @@ class NodeData<T> {
                 }
               }
 
-              return new Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation>(tuple.item1, x, y, dwh, childrenStates, childState, orientation);
-            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((Tuple7<NodeData<T>, double, double, Tuple2<double, double>, UnmodifiableListView<NodeState>, NodeState, HierarchyOrientation> tuple) {
-              final NodeStyle nodeStyle = styleClient.getNodeStyle(tuple.item6.className);
+              return new _ChildTuple<T>(tuple.item1, x, y, dwh, childrenStates, childState, orientation, nodeStyle);
+            }).takeUntil(tuple.item1.parent$.where((NodeData nodeData) => nodeData == null)).listen((_ChildTuple<T> tuple) {
+              _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.nodeData, tuple.x, tuple.y, tuple.childrenStates, tuple.childState));
 
-              _childPosition$ctrl.add(new Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState>(tuple.item1, tuple.item2, tuple.item3, tuple.item5, tuple.item6));
+              if (tuple.orientation == HierarchyOrientation.VERTICAL) {
+                node.recursiveWidth$sink.add(tuple.dwh.item1 - tuple.nodeStyle.margin.item2 - tuple.nodeStyle.margin.item4);
 
-              if (tuple.item7 == HierarchyOrientation.VERTICAL) {
-                node.recursiveWidth$sink.add(tuple.item4.item1 - nodeStyle.margin.item2 - nodeStyle.margin.item4);
-
-                tuple.item1.node.recursiveHeight$sink.add(tuple.item4.item2);
+                tuple.nodeData.node.recursiveHeight$sink.add(tuple.dwh.item2);
               } else {
-                node.recursiveHeight$sink.add(tuple.item4.item2 - nodeStyle.margin.item1 - nodeStyle.margin.item3);
+                node.recursiveHeight$sink.add(tuple.dwh.item2 - tuple.nodeStyle.margin.item1 - tuple.nodeStyle.margin.item3);
 
-                tuple.item1.node.recursiveWidth$sink.add(tuple.item4.item1);
+                tuple.nodeData.node.recursiveWidth$sink.add(tuple.dwh.item1);
               }
             });
             break;
@@ -182,5 +180,28 @@ class NodeData<T> {
   }
 
   String toString() => data.toString();
+
+}
+
+class _ChildTuple<T> {
+
+  final NodeData<T> nodeData;
+  final double x, y;
+  final Tuple2<double, double> dwh;
+  final UnmodifiableListView<NodeState> childrenStates;
+  final NodeState childState;
+  final HierarchyOrientation orientation;
+  final NodeStyle nodeStyle;
+
+  _ChildTuple(
+    this.nodeData,
+    this.x,
+    this.y,
+    this.dwh,
+    this.childrenStates,
+    this.childState,
+    this.orientation,
+    this.nodeStyle
+  );
 
 }
