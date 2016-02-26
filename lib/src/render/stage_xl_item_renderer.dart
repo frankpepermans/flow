@@ -10,6 +10,8 @@ import 'package:rxdart/rxdart.dart' as rx;
 import 'package:flow/src/render/item_renderer.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
+import 'package:flow/src/force_print.dart';
+
 class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
   final xl.Sprite border = new xl.Sprite();
@@ -17,8 +19,8 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   final xl.Shape connector = new xl.Shape();
 
   StageXLItemRenderer() : super() {
-    addChild(border);
     addChild(connector);
+    addChild(border);
     addChild(container);
 
     const List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
@@ -59,8 +61,8 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     final xl.Graphics h = border.graphics;
     final double dw = state.w;
     final double dh = state.h;
-    final double bw = state.w + 2 * nodeStyle.borderSize;
-    final double bh = state.h + 2 * nodeStyle.borderSize;
+    final double bw = dw + 2 * nodeStyle.borderSize;
+    final double bh = dh + 2 * nodeStyle.borderSize;
 
     h.clear();
     g.clear();

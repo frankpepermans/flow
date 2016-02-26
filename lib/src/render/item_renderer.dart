@@ -90,6 +90,7 @@ abstract class ItemRenderer<T> {
   final StreamController<bool> _isOpen$ctrl = new StreamController<bool>.broadcast();
   final StreamController<int> _childCount$ctrl = new StreamController<int>.broadcast();
 
+
   int renderCount = 0;
 
   void init(NodeEqualityHandler<T> equalityHandler, StyleClient styleClient) {
