@@ -1,8 +1,11 @@
 library flow.render.stage_xl_item_renderer;
 
+import 'dart:math' as math;
+
 import 'package:stagexl/stagexl.dart' as xl;
 
 import 'package:tuple/tuple.dart';
+import 'package:rxdart/rxdart.dart' as rx;
 
 import 'package:flow/src/render/item_renderer.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
@@ -105,7 +108,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
       n = nodeStyle.connectorHeight/2;
       o = fx < tx ? -nodeStyle.connectorWidth/2 : nodeStyle.connectorWidth/2;
       p = nodeStyle.padding.item1;
-      q = (tx > fx) ? nodeStyle.connectorRadius : (tx < fx) ? -nodeStyle.connectorRadius : 0.0;
+      q = (tx > fx) ? (nodeStyle.connectorRadius <= tx - fx ? nodeStyle.connectorRadius : tx - fx) : (tx < fx) ? -(nodeStyle.connectorRadius <= fx - tx ? nodeStyle.connectorRadius : fx - tx) : 0.0;
 
       g.moveTo(fx + o, fy);
       g.lineTo(fx + o, ty + p - n + nodeStyle.connectorRadius);
@@ -124,7 +127,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
       n = nodeStyle.connectorWidth/2;
       o = fy < ty ? -nodeStyle.connectorHeight/2 : nodeStyle.connectorHeight/2;
       p = nodeStyle.padding.item4;
-      q = (ty > fy) ? nodeStyle.connectorRadius : (ty < fy) ? -nodeStyle.connectorRadius : 0.0;
+      q = (ty > fy) ? (nodeStyle.connectorRadius <= ty - fy ? nodeStyle.connectorRadius : ty - fy) : (ty < fy) ? -(nodeStyle.connectorRadius <= fy - ty ? nodeStyle.connectorRadius : fy - ty) : 0.0;
 
       g.moveTo(fx, fy + o);
       g.lineTo(tx + p - n + nodeStyle.connectorRadius, fy + o);
