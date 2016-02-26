@@ -70,8 +70,23 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     g.rect(-dw/2, -dh/2, dw, dh);
     g.closePath();
 
+    g.fillColor(xl.Color.White);
+
+    g.beginPath();
+    g.rect(-dw/2, -dh/2, dw, dh);
+    g.closePath();
+
     h.fillColor(nodeStyle.border);
-    g.fillColor(nodeStyle.background);
+
+    if (state.orientation == HierarchyOrientation.VERTICAL) {
+      g.fillGradient(new xl.GraphicsGradient.linear(.0, -dh/2, .0, dh)
+        ..addColorStop(.0, nodeStyle.background)
+        ..addColorStop(1.0, nodeStyle.background & 0x40ffffff));
+    } else {
+      g.fillGradient(new xl.GraphicsGradient.linear(-dw/2, .0, dw, .0)
+        ..addColorStop(.0, nodeStyle.background)
+        ..addColorStop(1.0, nodeStyle.background & 0x40ffffff));
+    }
   }
 
   void connect(ItemRendererState<T> state) {
@@ -81,7 +96,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     final double tx = state.connectorToX;
     final double fy = state.connectorFromY;
     final double ty = state.connectorToY;
-    double n, o, p;
+    double n, o, p, q;
 
     g.clear();
     g.beginPath();
@@ -90,30 +105,38 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
       n = nodeStyle.connectorHeight/2;
       o = fx < tx ? -nodeStyle.connectorWidth/2 : nodeStyle.connectorWidth/2;
       p = nodeStyle.padding.item1;
+      q = (tx > fx) ? nodeStyle.connectorRadius : (tx < fx) ? -nodeStyle.connectorRadius : 0.0;
 
       g.moveTo(fx + o, fy);
-      g.lineTo(fx + o, ty + p - n);
-      g.lineTo(tx + o, ty + p - n);
+      g.lineTo(fx + o, ty + p - n + nodeStyle.connectorRadius);
+      g.quadraticCurveTo(fx + o, ty + p - n, fx + o + q, ty + p - n);
+      g.lineTo(tx + o - q, ty + p - n);
+      g.quadraticCurveTo(tx + o, ty + p - n, tx + o, ty + p - n - nodeStyle.connectorRadius);
       g.lineTo(tx + o, ty);
-
       g.lineTo(tx - o, ty);
-      g.lineTo(tx - o, ty + p + n);
-      g.lineTo(fx - o, ty + p + n);
+      g.lineTo(tx - o, ty + p + n - nodeStyle.connectorRadius);
+      g.quadraticCurveTo(tx - o, ty + p + n, tx - o - q, ty + p + n);
+      g.lineTo(fx - o + q, ty + p + n);
+      g.quadraticCurveTo(fx - o, ty + p + n, fx - o, ty + p + n + nodeStyle.connectorRadius);
       g.lineTo(fx - o, fy);
       g.lineTo(fx + o, fy);
     } else {
       n = nodeStyle.connectorWidth/2;
       o = fy < ty ? -nodeStyle.connectorHeight/2 : nodeStyle.connectorHeight/2;
       p = nodeStyle.padding.item4;
+      q = (ty > fy) ? nodeStyle.connectorRadius : (ty < fy) ? -nodeStyle.connectorRadius : 0.0;
 
       g.moveTo(fx, fy + o);
-      g.lineTo(tx + p - n, fy + o);
-      g.lineTo(tx + p - n, ty + o);
+      g.lineTo(tx + p - n + nodeStyle.connectorRadius, fy + o);
+      g.quadraticCurveTo(tx + p - n, fy + o, tx + p - n, fy + o + q);
+      g.lineTo(tx + p - n, ty + o - q);
+      g.quadraticCurveTo(tx + p - n, ty + o, tx + p - n - nodeStyle.connectorRadius, ty + o);
       g.lineTo(tx, ty + o);
-
       g.lineTo(tx, ty - o);
-      g.lineTo(tx + p + n, ty - o);
-      g.lineTo(tx + p + n, fy - o);
+      g.lineTo(tx + p + n - nodeStyle.connectorRadius, ty - o);
+      g.quadraticCurveTo(tx + p + n, ty - o, tx + p + n, ty - o - q);
+      g.lineTo(tx + p + n, fy - o + q);
+      g.quadraticCurveTo(tx + p + n, fy - o, tx + p + n + nodeStyle.connectorRadius, fy - o);
       g.lineTo(fx, fy - o);
       g.lineTo(fx, fy + o);
     }

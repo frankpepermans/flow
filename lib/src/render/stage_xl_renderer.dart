@@ -23,6 +23,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
   final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
+  final StreamController<bool> _animationComplete$ctrl = new StreamController<bool>.broadcast();
 
   html.DivElement container;
   html.CanvasElement canvas;
@@ -55,20 +56,26 @@ class StageXLRenderer<T> extends WebRenderer<T> {
       .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
       .listen((Tuple2<int, int> tuple) {
         if (tuple.item1 < canvas.width) {
-          new Timer(const Duration(milliseconds: ANIMATION_TIME_MS), () {
-            canvas.width = tuple.item1;
-            materializeStage$sink.add(true);
-          });
+          rx.observable(_animationComplete$ctrl.stream)
+            .debounce(const Duration(milliseconds: 20))
+            .take(1)
+            .listen((_) {
+              canvas.width = tuple.item1;
+              materializeStage$sink.add(true);
+            });
         } else {
           canvas.width = tuple.item1;
           materializeStage$sink.add(true);
         }
 
         if (tuple.item2 < canvas.height) {
-          new Timer(const Duration(milliseconds: ANIMATION_TIME_MS), () {
-            canvas.height = tuple.item2;
-            materializeStage$sink.add(true);
-          });
+          rx.observable(_animationComplete$ctrl.stream)
+            .debounce(const Duration(milliseconds: 20))
+            .take(1)
+            .listen((_) {
+              canvas.height = tuple.item2;
+              materializeStage$sink.add(true);
+            });
         } else {
           canvas.height = tuple.item2;
           materializeStage$sink.add(true);
@@ -88,6 +95,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           .flatMapLatest((List<xl.Tween> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<xl.Tween>.fromIterable(animations)))
           .listen((xl.Tween animation) {
             stage.juggler.add(animation);
+
+            animation.onComplete = () => _animationComplete$ctrl.add(true);
 
             materializeStage$sink.add(true);
           });
@@ -168,9 +177,15 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             if (tuple.orientation == HierarchyOrientation.VERTICAL) {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(.0, entry.state.height / 2)));
 
+              if (pos.x > .0) pos.x -= entry.state.width/3;
+              else if (pos.x < .0) pos.x += entry.state.width/3;
+
               child.connector$sink.add(new Tuple4<double, double, double, double>(.0, -dh/2 - nodeStyle.borderSize, pos.x, pos.y + nodeStyle.borderSize));
             } else {
               pos = child.globalToLocal(sprite.localToGlobal(new xl.Point(entry.state.width / 2, .0)));
+
+              if (pos.y > .0) pos.y -= entry.state.height/3;
+              else if (pos.y < .0) pos.y += entry.state.height/3;
 
               child.connector$sink.add(new Tuple4<double, double, double, double>(-dw/2 - nodeStyle.borderSize, .0, pos.x + nodeStyle.borderSize, pos.y));
             }

@@ -207,8 +207,8 @@ class NodeStyle {
   final double borderSize;
 
   final int connectorBackground;
-  final double connectorWidth, connectorHeight;
+  final double connectorWidth, connectorHeight, connectorRadius;
 
-  NodeStyle(this.margin, this.padding, this.background, this.border, this.borderSize, this.connectorBackground, this.connectorWidth, this.connectorHeight);
+  NodeStyle(this.margin, this.padding, this.background, this.border, this.borderSize, this.connectorRadius, this.connectorBackground, this.connectorWidth, this.connectorHeight);
 
 }

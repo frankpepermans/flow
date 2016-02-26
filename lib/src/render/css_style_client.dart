@@ -36,6 +36,7 @@ class CssStyleClient extends StyleClient {
           getNodeBackgroundColor(className),
           getNodeBorderColor(className),
           getNodeBorderSize(className),
+          getConnectorRadius(className),
           getConnectorBackgroundColor(className),
           getConnectorWidth(className),
           getConnectorHeight(className)
@@ -90,6 +91,13 @@ class CssStyleClient extends StyleClient {
     final html.CssStyleDeclaration cssStyleDeclaration = getStyleForSelectorName(className);
 
     return _cssStyleValueToDouble(cssStyleDeclaration.borderWidth, defaultValue: 1.0);
+  }
+
+  @override
+  double getConnectorRadius(String className) {
+    final html.CssStyleDeclaration cssStyleDeclaration = getStyleForSelectorName(className + '-connector');
+
+    return _cssStyleValueToDouble(cssStyleDeclaration.borderRadius, defaultValue: .0);
   }
 
   @override

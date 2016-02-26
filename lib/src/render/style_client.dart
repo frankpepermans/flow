@@ -14,6 +14,7 @@ abstract class StyleClient {
   int getNodeBorderColor(String className);
   double getNodeBorderSize(String className);
 
+  double getConnectorRadius(String className);
   int getConnectorBackgroundColor(String className);
   double getConnectorWidth(String className);
   double getConnectorHeight(String className);

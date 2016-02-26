@@ -67,16 +67,19 @@ html, body {
     background: rgb(33, 127, 80);
     width: 1px;
     height: 1px;
+    border-radius: 6px;
 }
 
 .flow-node-connector {
     background: rgb(255, 127, 80);
     width: 1px;
     height: 1px;
+    border-radius: 6px;
 }
 
 .flow-node-hover-connector {
     background: rgb(255, 127, 80);
     width: 1px;
     height: 1px;
+    border-radius: 6px;
 }
