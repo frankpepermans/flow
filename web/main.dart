@@ -27,7 +27,7 @@ void main() {
 
 void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {
   final math.Random R = new math.Random();
-  final int len = R.nextInt(3) + 1;
+  final int len = R.nextInt(4) + 1;
 
   for (int i=0; i<len; i++) {
     String next = R.nextInt(0xffffff).toString();

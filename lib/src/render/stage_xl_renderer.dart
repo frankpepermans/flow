@@ -42,7 +42,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
-        ..renderEngine = xl.RenderEngine.Canvas2D
+        ..renderEngine = xl.RenderEngine.WebGL
         ..inputEventMode = xl.InputEventMode.MouseAndTouch
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE
@@ -96,6 +96,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           .map(_invalidate)
           .flatMapLatest((List<List<xl.Tween>> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<List<xl.Tween>>.fromIterable(animations)))
           .listen((List<xl.Tween> animation) {
+            stage.juggler.removeTweens(animation.first.tweenObject);
+
             animation.last.onComplete = () => _animationComplete$ctrl.add(true);
 
             stage.juggler.addChain(animation);

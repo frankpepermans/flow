@@ -82,16 +82,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     g.closePath();
 
     h.fillColor(nodeStyle.border);
-
-    if (state.orientation == HierarchyOrientation.VERTICAL) {
-      g.fillGradient(new xl.GraphicsGradient.linear(.0, -dh/2, .0, dh)
-        ..addColorStop(.0, nodeStyle.background)
-        ..addColorStop(1.0, nodeStyle.background & 0x40ffffff));
-    } else {
-      g.fillGradient(new xl.GraphicsGradient.linear(-dw/2, .0, dw, .0)
-        ..addColorStop(.0, nodeStyle.background)
-        ..addColorStop(1.0, nodeStyle.background & 0x40ffffff));
-    }
+    g.fillColor(nodeStyle.background);
   }
 
   void connect(ItemRendererState<T> state) {
