@@ -36,7 +36,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     container = html.querySelector(containerSelector);
     canvas = html.querySelector(canvasSelector);
 
-    //canvas.context2D;
+    canvas.context2D;
 
     container.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
@@ -198,33 +198,33 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         child.size$sink.add(new Tuple2<double, double>(dw, dh));
 
         if (tuple.orientation == HierarchyOrientation.VERTICAL) {
-          tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-            ..animate.y.to(childPos.item3)
+          tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1500)
+            ..animate.x.to(childPos.item2)
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
 
-          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-            ..animate.x.to(childPos.item2)
+          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1500)
+            ..animate.y.to(childPos.item3)
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
         } else {
-          tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-            ..animate.x.to(childPos.item2)
+          tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1500)
+            ..animate.y.to(childPos.item3)
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
 
-          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-            ..animate.y.to(childPos.item3)
+          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1500)
+            ..animate.x.to(childPos.item2)
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
         }
 
         if (isChildShownAnimation) {
+          final xl.Tween tweenC = tweenB;
+          tweenB = tweenA;
+          tweenA = tweenC;
+
           tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
           if (!sprite.contains(child)) sprite.addChild(child);
         }
         else if (isChildHiddenAnimation) {
-          final xl.Tween tweenC = tweenB;
-          tweenB = tweenA;
-          tweenA = tweenC;
-
           tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
           tweenB.onComplete = () {

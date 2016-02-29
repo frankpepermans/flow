@@ -81,8 +81,8 @@ class Node {
     _recursiveWidthController.add(.0);
     _recursiveHeightController.add(.0);
 
-    _widthController.add(40.0);
-    _heightController.add(40.0);
+    _widthController.add(28.0);
+    _heightController.add(138.0);
   }
 }
 

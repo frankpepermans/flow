@@ -41,21 +41,21 @@ html, body {
     margin: 10px;
     padding: 10px;
     background: rgb(33, 196, 222);
-    border: 2px solid rgb(47, 79, 79);
+    border: 1px solid rgb(99, 133, 157);
 }
 
 .flow-node {
     margin: 10px;
     padding: 10px;
-    background: rgb(176, 196, 222);
-    border: 2px solid rgb(47, 79, 79);
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(99, 133, 157);
 }
 
 .flow-node-hover {
     margin: 10px;
     padding: 10px;
     background: rgb(255, 196, 222);
-    border: 2px solid rgb(47, 79, 79);
+    border: 1px solid rgb(99, 133, 157);
 }
 
 .flow-top-level-node-connector {

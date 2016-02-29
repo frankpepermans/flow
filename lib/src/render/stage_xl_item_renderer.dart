@@ -8,7 +8,8 @@ import 'package:tuple/tuple.dart';
 import 'package:rxdart/rxdart.dart' as rx;
 
 import 'package:flow/src/render/item_renderer.dart';
-import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
+import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle, NodeEqualityHandler;
+import 'package:flow/src/render/style_client.dart';
 
 import 'package:flow/src/force_print.dart';
 
@@ -18,17 +19,19 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   final xl.Sprite container = new xl.Sprite();
   final xl.Shape connector = new xl.Shape();
 
+  int viewIndex = 0;
+
+  final List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
+    const Tuple2<double, double>(28.0, 138.0),
+    const Tuple2<double, double>(138.0, 138.0),
+    const Tuple2<double, double>(348.0, 196.0)
+  ];
+
   StageXLItemRenderer() : super() {
     addChild(connector);
     addChild(border);
     addChild(container);
 
-    const List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
-      const Tuple2<double, double>(40.0, 40.0),
-      const Tuple2<double, double>(80.0, 80.0),
-      const Tuple2<double, double>(160.0, 160.0)
-    ];
-    int viewIndex = 0;
     bool isOpen = false;
 
     container.onMouseClick.listen((_) {
@@ -41,6 +44,16 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
     container.onMouseRightClick.listen((_) {
       isOpen = !isOpen;
+
+      if (isOpen && viewIndex == 0) {
+        viewIndex = 1;
+
+        resize$sink.add(views[viewIndex]);
+      } else if (!isOpen && viewIndex > 0) {
+        viewIndex = 0;
+
+        resize$sink.add(views[viewIndex]);
+      }
 
       isOpen$sink.add(isOpen);
     });
