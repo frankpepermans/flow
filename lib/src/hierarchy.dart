@@ -40,7 +40,7 @@ class Hierarchy<T> {
   final StreamController<NodeState> node$ctrl = new StreamController<NodeState>();
 
   NodeData<T> topLevelNodeData;
-  Digest _currentDigest;
+  Digest<T> _currentDigest;
   HierarchyOrientation _orientation;
 
   Hierarchy(this.renderer, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
@@ -149,7 +149,7 @@ class Hierarchy<T> {
         ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos) {
           return new Digestable(quiver.hash2(newNodeData, childPos?.item1), new RenderState<T>(newNodeData, state, parent, children, childPos));
         })
-          .flatMap((Digestable digestable) => new Stream.fromFuture(_digest(digestable)))
+          .map((Digestable<T> digestable) => _digest(digestable))
           .listen(renderer.state$sink.add);
 
         newNodeData.node.className$sink.add(className);
@@ -182,20 +182,12 @@ class Hierarchy<T> {
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
 
-  Future<Iterable<RenderState<T>>> _digest(Digestable digestable) {
+  UnmodifiableListView<RenderState<T>> _digest(Digestable<T> digestable) {
     if (_currentDigest == null) _currentDigest = new Digest();
 
     _currentDigest.append(digestable);
 
-    final Completer<Iterable<RenderState<T>>> completer = new Completer<Iterable<RenderState<T>>>();
-
-    scheduleMicrotask(() {
-      completer.complete(new UnmodifiableListView(_currentDigest.flush().values.toList(growable: false)));
-
-      //_currentDigest = null;
-    });
-
-    return completer.future;
+    return new UnmodifiableListView<RenderState<T>>(_currentDigest.flush().values.toList(growable: false));
   }
 }
 

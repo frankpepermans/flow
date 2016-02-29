@@ -25,7 +25,6 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
   final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
-  final StreamController<bool> _animationComplete$ctrl = new StreamController<bool>.broadcast();
 
   html.DivElement container;
   html.CanvasElement canvas;
@@ -36,6 +35,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   StageXLRenderer(String containerSelector, String canvasSelector) : super() {
     container = html.querySelector(containerSelector);
     canvas = html.querySelector(canvasSelector);
+
+    //canvas.context2D;
 
     container.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
@@ -55,29 +56,31 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     stage.addChild(topContainer);
 
     rx.observable(screenSize$ctrl.stream)
-      .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
+      .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next).tap(fprint)
       .listen((Tuple2<int, int> tuple) {
         if (tuple.item1 < canvas.width) {
-          rx.observable(_animationComplete$ctrl.stream)
-            .debounce(const Duration(milliseconds: ANIMATION_TIME_MS))
-            .take(1)
-            .listen((_) {
+          new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
+            if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.width = tuple.item1;
-              materializeStage$sink.add(true);
-            });
+              materializeStage$sink.add(true);fprint('canvas width set to: ${tuple.item1}');
+
+              timer.cancel();
+            }
+          });
         } else {
           canvas.width = tuple.item1;
           materializeStage$sink.add(true);
         }
 
         if (tuple.item2 < canvas.height) {
-          rx.observable(_animationComplete$ctrl.stream)
-            .debounce(const Duration(milliseconds: ANIMATION_TIME_MS))
-            .take(1)
-            .listen((_) {
+          new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
+            if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.height = tuple.item2;
-              materializeStage$sink.add(true);
-            });
+              materializeStage$sink.add(true);fprint('canvas height set to: ${tuple.item2}');
+
+              timer.cancel();
+            }
+          });
         } else {
           canvas.height = tuple.item2;
           materializeStage$sink.add(true);
@@ -92,15 +95,14 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           Map<NodeData<T>, RenderState<T>> rootItems,
           HierarchyOrientation orientation
         ) => new _InvalidationTuple<T>(data, parentMap, offsetTable, rootItems, orientation))
-          .debounce(const Duration(milliseconds: 20))
+          .debounce(const Duration(milliseconds: 40))
           .map(_invalidate)
-          .flatMapLatest((List<List<xl.Tween>> animations) => rx.observable(animationStream).take(1).flatMapLatest((_) => new Stream<List<xl.Tween>>.fromIterable(animations)))
-          .listen((List<xl.Tween> animation) {
-            stage.juggler.removeTweens(animation.first.tweenObject);
+          .listen((List<List<xl.Tween>> animations) {
+            animations.forEach((List<xl.Tween> animation) {
+              stage.juggler.removeTweens(animation.first.tweenObject);
 
-            animation.last.onComplete = () => _animationComplete$ctrl.add(true);
-
-            stage.juggler.addChain(animation);
+              stage.juggler.addChain(animation);
+            });
 
             materializeStage$sink.add(true);
           });
@@ -195,37 +197,42 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         child.data$sink.add(childPos.item1.data);
         child.size$sink.add(new Tuple2<double, double>(dw, dh));
 
-        if (isChildShownAnimation) {
-          if (tuple.orientation == HierarchyOrientation.VERTICAL) {
-            tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-              ..delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000
-              ..animate.y.to(childPos.item3)
-              ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
+        if (tuple.orientation == HierarchyOrientation.VERTICAL) {
+          tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
+            ..animate.y.to(childPos.item3)
+            ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
 
-            tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-              ..animate.x.to(childPos.item2)
-              ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
-          } else {
-            tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-              ..delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000
-              ..animate.x.to(childPos.item2)
-              ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
-
-            tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
-              ..animate.y.to(childPos.item3)
-              ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
-          }
+          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
+            ..animate.x.to(childPos.item2)
+            ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
         } else {
           tweenA = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
             ..animate.x.to(childPos.item2)
+            ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
+
+          tweenB = new xl.Tween(child, ANIMATION_TIME_MS / 1000)
             ..animate.y.to(childPos.item3)
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
         }
 
-        tweens.add(<xl.Tween>[tweenA, tweenB].where((xl.Tween tween) => tween != null).toList(growable: false));
+        if (isChildShownAnimation) {
+          tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
-        if (isChildShownAnimation) sprite.addChild(child);
-        else if (isChildHiddenAnimation) sprite.removeChild(child);
+          if (!sprite.contains(child)) sprite.addChild(child);
+        }
+        else if (isChildHiddenAnimation) {
+          final xl.Tween tweenC = tweenB;
+          tweenB = tweenA;
+          tweenA = tweenC;
+
+          tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
+
+          tweenB.onComplete = () {
+            if (sprite.contains(child)) sprite.removeChild(child);
+          };
+        }
+
+        tweens.add(<xl.Tween>[tweenA, tweenB].where((xl.Tween tween) => tween != null).toList(growable: false));
       }
 
       if (isRoot && !container.contains(sprite)) container.addChild(sprite);

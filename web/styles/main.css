@@ -4,8 +4,7 @@ html, body {
     height: 100%;
 }
 
-#stage {
-
+#flow-canvas {
 }
 
 .flow-controls {
@@ -36,10 +35,6 @@ html, body {
     bottom: 0;
     height: 90%;
     overflow: auto;
-}
-
-.flow-canvas {
-    overflow: scroll;
 }
 
 .flow-top-level-node {
