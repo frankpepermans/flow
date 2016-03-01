@@ -133,14 +133,6 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     }
   }
 
-  @override
-  void updateOnAnimation(double value) {
-    super.updateOnAnimation(value);
-
-    backgroundGroup.alpha = value;
-    arrowGroup.alpha = value;
-  }
-
   void setBackground() {
     xl.BitmapData bmp;
 

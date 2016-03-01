@@ -40,8 +40,15 @@ html, body {
 .flow-top-level-node {
     margin: 10px;
     padding: 10px;
-    background: rgb(33, 196, 222);
+    background: rgb(255, 255, 255);
     border: 1px solid rgb(99, 133, 157);
+}
+
+.flow-top-level-node-hover {
+    margin: 10px;
+    padding: 10px;
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(133, 177, 200);
 }
 
 .flow-node {
@@ -54,26 +61,26 @@ html, body {
 .flow-node-hover {
     margin: 10px;
     padding: 10px;
-    background: rgb(255, 196, 222);
-    border: 1px solid rgb(99, 133, 157);
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(133, 177, 200);
 }
 
 .flow-top-level-node-connector {
-    background: rgb(33, 127, 80);
+    background: rgb(180, 180, 180);
     width: 1px;
     height: 1px;
     border-radius: 6px;
 }
 
 .flow-node-connector {
-    background: rgb(255, 127, 80);
+    background: rgb(180, 180, 180);
     width: 1px;
     height: 1px;
     border-radius: 6px;
 }
 
 .flow-node-hover-connector {
-    background: rgb(255, 127, 80);
+    background: rgb(180, 180, 180);
     width: 1px;
     height: 1px;
     border-radius: 6px;

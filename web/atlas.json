@@ -1,0 +1,93 @@
+{"frames": [
+
+{
+	"filename": "bg-large.png",
+	"frame": {"x":1,"y":1,"w":348,"h":197},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":348,"h":197},
+	"sourceSize": {"w":348,"h":197},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "bg-medium.png",
+	"frame": {"x":351,"y":61,"w":138,"h":138},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":138,"h":138},
+	"sourceSize": {"w":138,"h":138},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "bg-small.png",
+	"frame": {"x":491,"y":61,"w":28,"h":138},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":28,"h":138},
+	"sourceSize": {"w":28,"h":138},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-large-hover.png",
+	"frame": {"x":351,"y":1,"w":348,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":348,"h":28},
+	"sourceSize": {"w":348,"h":28},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-large.png",
+	"frame": {"x":351,"y":31,"w":348,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":348,"h":28},
+	"sourceSize": {"w":348,"h":28},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-medium-hover.png",
+	"frame": {"x":521,"y":61,"w":136,"h":16},
+	"rotated": true,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":136,"h":16},
+	"sourceSize": {"w":136,"h":16},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-medium.png",
+	"frame": {"x":539,"y":61,"w":136,"h":16},
+	"rotated": true,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":136,"h":16},
+	"sourceSize": {"w":136,"h":16},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-small-hover.png",
+	"frame": {"x":557,"y":61,"w":26,"h":16},
+	"rotated": true,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":26,"h":16},
+	"sourceSize": {"w":26,"h":16},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "btn-small.png",
+	"frame": {"x":557,"y":89,"w":26,"h":16},
+	"rotated": true,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":26,"h":16},
+	"sourceSize": {"w":26,"h":16},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "atlas.png",
+	"format": "RGBA8888",
+	"size": {"w":700,"h":200},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:224fbd28201288d32aa6f429ca194492:6aa44627caf4b615a27a1d07edce62ad:cbce6b53f0f49e0bf15173c25c41f876$"
+}
+}

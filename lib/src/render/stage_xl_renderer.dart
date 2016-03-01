@@ -222,6 +222,10 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
           tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
+          stage.juggler.addTranslation(.0, 1.0, ANIMATION_TIME_MS / 375, xl.Transition.easeOutSine, (num value) {
+            child.animation$sink.add(value.toDouble());
+          })..onComplete = () => child.animation$sink.add(1.0);
+
           if (!sprite.contains(child)) sprite.addChild(child);
         }
         else if (isChildHiddenAnimation) {
@@ -230,6 +234,10 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           tweenB.onComplete = () {
             if (sprite.contains(child)) sprite.removeChild(child);
           };
+
+          stage.juggler.addTranslation(child.alpha, .0, ANIMATION_TIME_MS / 375, xl.Transition.easeOutSine, (num value) {
+            child.animation$sink.add(value.toDouble());
+          })..onComplete = () => child.animation$sink.add(.0);
         }
 
         tweens.add(<xl.Tween>[tweenA, tweenB].where((xl.Tween tween) => tween != null).toList(growable: false));

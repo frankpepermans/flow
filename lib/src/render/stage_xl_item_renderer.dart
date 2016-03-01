@@ -52,6 +52,13 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
     g.fillColor(nodeStyle.background);
   }
 
+  @override
+  void updateOnAnimation(double value) {
+    container.alpha = value;
+    border.alpha = value;
+  }
+
+  @override
   void connect(ItemRendererState<T> state) {
     final NodeStyle nodeStyle = styleClient.getNodeStyle(state.className);
     final xl.Graphics g = connector.graphics;

@@ -92,6 +92,8 @@ class Hierarchy<T> {
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
 
+          itemRenderer.isOpen$sink.add(true);
+
           itemRenderer.className$.listen((String className) {
             node.className$sink.add(className);
           });
@@ -120,6 +122,8 @@ class Hierarchy<T> {
           newNodeData.node.isOpen$sink.add(false);
 
           itemRenderer.init(equalityHandler, renderer.styleClient);
+
+          itemRenderer.isOpen$sink.add(false);
 
           itemRenderer.className$.listen((String className) {
             node.className$sink.add(className);
