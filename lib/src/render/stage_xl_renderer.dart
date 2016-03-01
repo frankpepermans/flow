@@ -242,7 +242,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
     rootItemValues.sort((RenderState<T> entryA, RenderState<T> entryB) => entryA.state.childIndex.compareTo(entryB.state.childIndex));
 
-    double xOffset = .0;
+    double offsetX = .0, offsetY = .0;
     int childIndex = -1;
 
     rootItemValues.forEach((RenderState<T> entry) {
@@ -254,15 +254,15 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
       if (entry.state.childIndex != childIndex) {
         if (tuple.orientation == HierarchyOrientation.VERTICAL) {
-          tx = xOffset + entry.state.actualWidth / 2 + borderSize;
+          tx = offsetX + entry.state.actualWidth / 2 + borderSize;
           ty = entry.state.height / 2 + borderSize;
 
-          xOffset += entry.state.actualWidth + nodeStyle.margin.item4 + nodeStyle.margin.item2;
+          offsetX += entry.state.actualWidth + nodeStyle.margin.item4 + nodeStyle.margin.item2;
         } else {
           tx = entry.state.width / 2 + borderSize;
-          ty = xOffset + entry.state.actualHeight / 2 + borderSize;
+          ty = offsetY + entry.state.actualHeight / 2 + borderSize;
 
-          xOffset += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
+          offsetY += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
         tuple.offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
@@ -277,6 +277,11 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         sprite.size$sink.add(new Tuple2<double, double>(entry.state.width, entry.state.height));
 
         childIndex = entry.state.childIndex;
+
+        final dw0 = (offsetX + borderSize).ceil(), dh0 = (offsetY + borderSize).ceil();
+
+        dw = (dw0 > dw) ? dw0 : dw;
+        dh = (dh0 > dh) ? dh0 : dh;
       }
     });
 
