@@ -10,6 +10,7 @@ import 'package:flow/src/render/stage_xl_item_renderer.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeEqualityHandler;
 import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/stage_xl_resource_manager.dart';
+import 'package:flow/src/render/item_renderer.dart';
 
 final StageXLResourceManager resourceManager = new StageXLResourceManager();
 final xl.TextureAtlas atlas = resourceManager.resourceManager.getTextureAtlas("atlas");
@@ -47,8 +48,6 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
         if (viewIndex >= views.length) viewIndex = 0;
 
         resize$sink.add(views[viewIndex]);
-
-        setBackground();
       });
 
     container.onMouseRightClick
@@ -64,8 +63,6 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
         resize$sink.add(views[viewIndex]);
 
         isOpen$sink.add(isOpen);
-
-        setBackground();
       });
 
     container.onMouseOver.listen((_) {
@@ -75,6 +72,11 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     container.onMouseOut.listen((_) {
       className$sink.add('flow-node');
     });
+  }
+
+  @override
+  void update(ItemRendererState<T> state) {
+    super.update(state);
 
     setBackground();
   }
