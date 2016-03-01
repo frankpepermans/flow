@@ -8,6 +8,28 @@ import 'package:rxdart/rxdart.dart' as rx;
 import 'package:flow/src/hierarchy.dart' show NodeEqualityHandler, HierarchyOrientation;
 import 'package:flow/src/render/style_client.dart';
 
+enum AnimationType {
+  CHILDREN_OPEN,
+  CHILDREN_CLOSE,
+  REPOSITION
+}
+
+enum AnimationPosition {
+  START,
+  UPDATE,
+  COMPLETE
+}
+
+class AnimationInfo {
+
+  final double time;
+  final AnimationType type;
+  final AnimationPosition position;
+
+  AnimationInfo(this.type, this.position, this.time);
+
+}
+
 class ItemRendererState<T> {
 
   final T data;
@@ -66,6 +88,7 @@ class ItemRendererState<T> {
 abstract class ItemRenderer<T> {
 
   bool _isInitialized = false;
+  bool isAnimating = false;
   StyleClient styleClient;
 
   bool get isInitialized => _isInitialized;
@@ -73,7 +96,7 @@ abstract class ItemRenderer<T> {
   Stream<String> get className$ => _className$ctrl.stream;
   Stream<bool> get isOpen$ => _isOpen$ctrl.stream;
   Stream<HierarchyOrientation> get orientation$ => _orientation$ctrl.stream;
-  Stream<double> get animation$ => _animation$ctrl.stream;
+  Stream<AnimationInfo> get animation$ => _animation$ctrl.stream;
 
   Sink<T> get data$sink => _data$ctrl.sink;
   Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
@@ -83,7 +106,7 @@ abstract class ItemRenderer<T> {
   Sink<Tuple2<double, double>> get resize$sink => _resize$ctrl.sink;
   Sink<bool> get isOpen$sink => _isOpen$ctrl.sink;
   Sink<int> get childCount$sink => _childCount$ctrl.sink;
-  Sink<double> get animation$sink => _animation$ctrl.sink;
+  Sink<AnimationInfo> get animation$sink => _animation$ctrl.sink;
 
   Stream<bool> get renderingRequired$ => _renderingRequired$ctrl.stream;
 
@@ -96,7 +119,7 @@ abstract class ItemRenderer<T> {
   final StreamController<String> _className$ctrl = new StreamController<String>.broadcast();
   final StreamController<bool> _isOpen$ctrl = new StreamController<bool>.broadcast();
   final StreamController<int> _childCount$ctrl = new StreamController<int>.broadcast();
-  final StreamController<double> _animation$ctrl = new StreamController<double>.broadcast();
+  final StreamController<AnimationInfo> _animation$ctrl = new StreamController<AnimationInfo>.broadcast();
 
   int renderCount = 0;
 
@@ -105,7 +128,7 @@ abstract class ItemRenderer<T> {
   void init(NodeEqualityHandler<T> equalityHandler, StyleClient styleClient) {
     this.styleClient = styleClient;
 
-    new rx.Observable<ItemRendererState<T>>.combineLatest(<Stream>[
+    final rx.Observable<ItemRendererState<T>> state$ = new rx.Observable<ItemRendererState<T>>.combineLatest(<Stream>[
       _data$ctrl.stream,
       rx.observable(_connector$ctrl.stream).startWith(const <Tuple4<double, double, double, double>>[const Tuple4<double, double, double, double>(.0, .0, .0, .0)]),
       _size$ctrl.stream,
@@ -114,24 +137,23 @@ abstract class ItemRenderer<T> {
       rx.observable(_childCount$ctrl.stream).startWith(const <int>[0]),
       _isOpen$ctrl.stream
     ], (T data, Tuple4<double, double, double, double> connector, Tuple2<double, double> size, HierarchyOrientation orientation, String className, int childCount, bool isOpen) => new ItemRendererState<T>(data, size.item1, size.item2, connector.item1, connector.item2, connector.item3, connector.item4, orientation, className, childCount, isOpen))
-      .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) => stateB.equals(stateA, equalityHandler))
-      .listen((ItemRendererState<T> state) {
-        update(state);
-        connect(state);
+      .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) => stateB.equals(stateA, equalityHandler));
 
-        _renderingRequired$ctrl.add(true);
-      });
+    state$.listen((ItemRendererState<T> state) {
+      update(state);
+      connect(state);
 
-    animation$.listen((double value) {
-      updateOnAnimation(value);
+      _renderingRequired$ctrl.add(true);
     });
+
+    animation$.listen(updateOnAnimation);
 
     _isInitialized = true;
   }
 
   void update(ItemRendererState<T> state);
 
-  void updateOnAnimation(double value);
+  void updateOnAnimation(AnimationInfo info);
 
   void connect(ItemRendererState<T> state);
 }

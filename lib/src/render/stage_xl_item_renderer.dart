@@ -53,10 +53,7 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   }
 
   @override
-  void updateOnAnimation(double value) {
-    container.alpha = value;
-    border.alpha = value;
-  }
+  void updateOnAnimation(AnimationInfo info) {}
 
   @override
   void connect(ItemRendererState<T> state) {
