@@ -3,6 +3,8 @@ library flow.display.node;
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:tuple/tuple.dart';
+
 import 'package:rxdart/rxdart.dart' as rx;
 
 class NodeState {
@@ -76,13 +78,13 @@ class Node {
       .debounce(const Duration(milliseconds: 20));
   }
 
-  void init() {
+  void init(Tuple2<double, double> size) {
     _childIndexController.add(0);
     _recursiveWidthController.add(.0);
     _recursiveHeightController.add(.0);
 
-    _widthController.add(28.0);
-    _heightController.add(138.0);
+    _widthController.add(size.item1);
+    _heightController.add(size.item2);
   }
 }
 

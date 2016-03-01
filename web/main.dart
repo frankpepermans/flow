@@ -9,7 +9,7 @@ void main() {
   final StageXLRenderer<String> renderer = new StageXLRenderer<String>('#flow-container', '#flow-canvas');
   final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
 
-  hierarchy.orientation = HierarchyOrientation.HORIZONTAL;
+  hierarchy.orientation = HierarchyOrientation.VERTICAL;
 
   hierarchy.add('A', className: 'flow-top-level-node');
   hierarchy.add('B', className: 'flow-top-level-node');

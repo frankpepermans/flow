@@ -68,6 +68,7 @@ abstract class ItemRenderer<T> {
   Stream<Tuple2<double, double>> get resize$ => _resize$ctrl.stream;
   Stream<String> get className$ => _className$ctrl.stream;
   Stream<bool> get isOpen$ => _isOpen$ctrl.stream;
+  Stream<HierarchyOrientation> get orientation$ => _orientation$ctrl.stream;
 
   Sink<T> get data$sink => _data$ctrl.sink;
   Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
@@ -85,13 +86,14 @@ abstract class ItemRenderer<T> {
   final StreamController<Tuple2<double, double>> _size$ctrl = new StreamController<Tuple2<double, double>>.broadcast();
   final StreamController<Tuple2<double, double>> _resize$ctrl = new StreamController<Tuple2<double, double>>.broadcast();
   final StreamController<bool> _renderingRequired$ctrl = new StreamController<bool>();
-  final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
+  final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>.broadcast();
   final StreamController<String> _className$ctrl = new StreamController<String>.broadcast();
   final StreamController<bool> _isOpen$ctrl = new StreamController<bool>.broadcast();
   final StreamController<int> _childCount$ctrl = new StreamController<int>.broadcast();
 
-
   int renderCount = 0;
+
+  Tuple2<double, double> getDefaultSize(HierarchyOrientation orientation);
 
   void init(NodeEqualityHandler<T> equalityHandler, StyleClient styleClient) {
     this.styleClient = styleClient;

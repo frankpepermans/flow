@@ -31,9 +31,9 @@ class Hierarchy<T> {
 
   void set orientation(HierarchyOrientation orientation) => _orientation$ctrl.add(orientation);
 
-  final StreamController<Tuple4<T, T, String, ItemRenderer<T>>> _addNodeData$ctrl = new StreamController<Tuple4<T, T, String, ItemRenderer<T>>>();
+  final StreamController<Tuple4<T, T, String, Function>> _addNodeData$ctrl = new StreamController<Tuple4<T, T, String, Function>>();
   final StreamController<T> _removeNodeData$ctrl = new StreamController<T>();
-  final StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>> _retryNodeData$ctrl = new StreamController<Tuple5<bool, T, T, String, ItemRenderer<T>>>();
+  final StreamController<Tuple5<bool, T, T, String, Function>> _retryNodeData$ctrl = new StreamController<Tuple5<bool, T, T, String, Function>>();
   final StreamController<UnmodifiableListView<NodeData<T>>> _nodeData$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>.broadcast();
 
@@ -59,13 +59,13 @@ class Hierarchy<T> {
 
     new rx.Observable.zip(
     [
-      new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, ItemRenderer<T>>>>[
-        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, ItemRenderer<T>> tuple) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)),
-        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, ItemRenderer<T>>(false, data, null, null, null)),
+      new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, Function>>>[
+        _addNodeData$ctrl.stream.map((Tuple4<T, T, String, Function> tuple) => new Tuple5<bool, T, T, String, Function>(true, tuple.item1, tuple.item2, tuple.item3, tuple.item4)),
+        _removeNodeData$ctrl.stream.map((T data) => new Tuple5<bool, T, T, String, Function>(false, data, null, null, null)),
         _retryNodeData$ctrl.stream
       ]),
       _nodeData$ctrl.stream
-    ], (Tuple5<bool, T, T, String, ItemRenderer<T>> tuple, UnmodifiableListView<NodeData<T>> list) {
+    ], (Tuple5<bool, T, T, String, Function> tuple, UnmodifiableListView<NodeData<T>> list) {
       final List<NodeData<T>> modifier = list.toList();
       final String className = (tuple.item4 != null) ? tuple.item4 : 'flow-node';
 
@@ -84,7 +84,7 @@ class Hierarchy<T> {
             return list;
           }
         } else {
-          itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
+          itemRenderer = (tuple.item5 != null) ? tuple.item5(tuple.item2) as ItemRenderer<T> : renderer.newDefaultItemRendererInstance();
           node = new Node();
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
 
@@ -113,7 +113,7 @@ class Hierarchy<T> {
         }
 
         if (parentNodeData != null) {
-          itemRenderer = (tuple.item5 != null) ? tuple.item5 : renderer.newDefaultItemRendererInstance();
+          itemRenderer = (tuple.item5 != null) ? tuple.item5(tuple.item2) as ItemRenderer<T> : renderer.newDefaultItemRendererInstance();
           node = new Node();
           newNodeData = new NodeData<T>(tuple.item2, node, childCompareHandler, itemRenderer, renderer.styleClient);
 
@@ -154,8 +154,10 @@ class Hierarchy<T> {
 
         newNodeData.node.className$sink.add(className);
 
-        node?.init();
+        node?.init(itemRenderer?.getDefaultSize(_orientation));
         newNodeData.init();
+
+        itemRenderer?.orientation$sink?.add(_orientation);
 
         modifier.add(newNodeData);
       } else {
@@ -178,7 +180,7 @@ class Hierarchy<T> {
     _nodeData$ctrl.add(new UnmodifiableListView<NodeData<T>>(const []));
   }
 
-  void add(T data, {T parentData, String className, ItemRenderer<T> itemRenderer}) => _addNodeData$ctrl.add(new Tuple4<T, T, String, ItemRenderer<T>>(data, parentData, className, itemRenderer));
+  void add(T data, {T parentData, String className, ItemRenderer<T> itemRenderer(T data)}) => _addNodeData$ctrl.add(new Tuple4<T, T, String, Function>(data, parentData, className, itemRenderer));
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
 

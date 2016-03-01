@@ -1,17 +1,11 @@
 library flow.render.stage_xl_item_renderer;
 
-import 'dart:math' as math;
-
 import 'package:stagexl/stagexl.dart' as xl;
 
 import 'package:tuple/tuple.dart';
-import 'package:rxdart/rxdart.dart' as rx;
 
 import 'package:flow/src/render/item_renderer.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle, NodeEqualityHandler;
-import 'package:flow/src/render/style_client.dart';
-
-import 'package:flow/src/force_print.dart';
 
 class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
 
@@ -19,52 +13,12 @@ class StageXLItemRenderer<T> extends xl.Sprite with ItemRenderer<T> {
   final xl.Sprite container = new xl.Sprite();
   final xl.Shape connector = new xl.Shape();
 
-  int viewIndex = 0;
-
-  final List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
-    const Tuple2<double, double>(28.0, 138.0),
-    const Tuple2<double, double>(138.0, 138.0),
-    const Tuple2<double, double>(348.0, 196.0)
-  ];
+  Tuple2<double, double> getDefaultSize(HierarchyOrientation orientation) => const Tuple2<double, double>(.0, .0);
 
   StageXLItemRenderer() : super() {
     addChild(connector);
     addChild(border);
     addChild(container);
-
-    bool isOpen = false;
-
-    container.onMouseClick.listen((_) {
-      viewIndex++;
-
-      if (viewIndex >= views.length) viewIndex = 0;
-
-      resize$sink.add(views[viewIndex]);
-    });
-
-    container.onMouseRightClick.listen((_) {
-      isOpen = !isOpen;
-
-      if (isOpen && viewIndex == 0) {
-        viewIndex = 1;
-
-        resize$sink.add(views[viewIndex]);
-      } else if (!isOpen && viewIndex > 0) {
-        viewIndex = 0;
-
-        resize$sink.add(views[viewIndex]);
-      }
-
-      isOpen$sink.add(isOpen);
-    });
-
-    container.onMouseOver.listen((_) {
-      className$sink.add('flow-node-hover');
-    });
-
-    container.onMouseOut.listen((_) {
-      className$sink.add('flow-node');
-    });
   }
 
   @override
