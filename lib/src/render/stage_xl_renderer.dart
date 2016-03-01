@@ -16,8 +16,6 @@ import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 
-import 'package:flow/src/force_print.dart';
-
 class StageXLRenderer<T> extends WebRenderer<T> {
 
   static const int ANIMATION_TIME_MS = 300;
@@ -56,13 +54,13 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     stage.addChild(topContainer);
 
     rx.observable(screenSize$ctrl.stream)
-      .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next).tap(fprint)
+      .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
       .listen((Tuple2<int, int> tuple) {
         if (tuple.item1 < canvas.width) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.width = tuple.item1;
-              materializeStage$sink.add(true);fprint('canvas width set to: ${tuple.item1}');
+              materializeStage$sink.add(true);
 
               timer.cancel();
             }
@@ -76,7 +74,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.height = tuple.item2;
-              materializeStage$sink.add(true);fprint('canvas height set to: ${tuple.item2}');
+              materializeStage$sink.add(true);
 
               timer.cancel();
             }

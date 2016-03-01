@@ -12,7 +12,6 @@ import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeEquality
 import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/stage_xl_resource_manager.dart';
 import 'package:flow/src/render/item_renderer.dart';
-import 'package:flow/src/force_print.dart';
 
 final StageXLResourceManager resourceManager = new StageXLResourceManager();
 final xl.TextureAtlas atlas = resourceManager.resourceManager.getTextureAtlas("atlas");
@@ -164,7 +163,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
         isAnimating = true;
       }
 
-      if (dwhA.item1 != dwhB.item1) {fprint(sx + info.time * tx);
+      if (dwhA.item1 != dwhB.item1) {
         container.scaleX = border.scaleX = backgroundGroup.scaleX = arrowGroup.scaleX = sx + info.time * tx;
       }
 

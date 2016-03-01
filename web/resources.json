@@ -1,0 +1,21 @@
+{"frames": [
+
+{
+	"filename": "resources.png",
+	"frame": {"x":1,"y":1,"w":138,"h":138},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":138,"h":138},
+	"sourceSize": {"w":138,"h":138},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "resources.png",
+	"format": "RGBA8888",
+	"size": {"w":140,"h":140},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:d20ddf6a094694a8aee46508cd97f6f5:392ab008e1d6bd4e5f3a9eb9320eb7d3:19b347f51627ec12809fffa771f50137$"
+}
+}
