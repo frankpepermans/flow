@@ -159,8 +159,6 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     } else {
       if (info.position == AnimationPosition.START && (viewIndex != lastIndex)) {
         _disableMouseEvents = true;
-
-        isAnimating = true;
       }
 
       if (dwhA.item1 != dwhB.item1) {
@@ -175,8 +173,6 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
         _disableMouseEvents = false;
 
         lastIndex = viewIndex;
-
-        isAnimating = false;
       }
     }
   }

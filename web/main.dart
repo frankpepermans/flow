@@ -7,6 +7,7 @@ import 'package:flow/src/render/stage_xl_renderer.dart';
 import 'package:flow/src/stage_xl_resource_manager.dart';
 
 import 'flow_node_item_renderer.dart';
+import 'hierarchy_data_generator.dart';
 
 void main() {
   final StageXLResourceManager rm = new StageXLResourceManager();
@@ -33,6 +34,8 @@ void main() {
           hierarchy.orientation = HierarchyOrientation.VERTICAL;
       });
     });
+
+  new HierarchyDataGenerator().getPeople(100).forEach((Person person) => print(person));
 }
 
 void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {

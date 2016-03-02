@@ -98,6 +98,8 @@ class Hierarchy<T> {
             node.className$sink.add(className);
           });
 
+          itemRenderer.animation$.map((_) => true).listen(renderer.materializeStage$sink.add);
+
           itemRenderer.className$sink.add(className);
 
           rx.observable(_orientation$ctrl.stream)
@@ -128,6 +130,8 @@ class Hierarchy<T> {
           itemRenderer.className$.listen((String className) {
             node.className$sink.add(className);
           });
+
+          itemRenderer.animation$.map((_) => true).listen(renderer.materializeStage$sink.add);
 
           itemRenderer.className$sink.add(className);
 

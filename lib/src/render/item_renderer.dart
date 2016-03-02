@@ -7,6 +7,7 @@ import 'package:rxdart/rxdart.dart' as rx;
 
 import 'package:flow/src/hierarchy.dart' show NodeEqualityHandler, HierarchyOrientation;
 import 'package:flow/src/render/style_client.dart';
+import 'package:flow/src/render/animation.dart';
 
 enum AnimationType {
   CHILDREN_OPEN,
@@ -88,8 +89,22 @@ class ItemRendererState<T> {
 abstract class ItemRenderer<T> {
 
   bool _isInitialized = false;
-  bool isAnimating = false;
   StyleClient styleClient;
+  Animation _animation;
+  StreamSubscription<AnimationInfo> _animationSubscription;
+
+  Animation get animation => _animation;
+  void set animation(Animation value) {
+    if (_animationSubscription != null) {
+      _animationSubscription.cancel();
+    }
+
+    _animation = value;
+
+    if (_animation != null) {
+      _animationSubscription = _animation.animation$.listen(animation$sink.add);
+    }
+  }
 
   bool get isInitialized => _isInitialized;
   Stream<Tuple2<double, double>> get resize$ => _resize$ctrl.stream;

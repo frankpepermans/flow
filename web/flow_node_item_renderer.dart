@@ -1,4 +1,4 @@
-library flow_example.flow_node_item_renderer;
+library flow.flow_node_item_renderer;
 
 import 'dart:async';
 import 'dart:math' as math;
@@ -18,7 +18,7 @@ final xl.TextureAtlas atlas = resourceManager.resourceManager.getTextureAtlas("a
 
 class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
-  xl.Sprite backgroundGroup, arrowGroup;
+  xl.Sprite backgroundGroup, buttonGroup, arrowGroup;
   xl.Bitmap backgroundStatic, buttonStatic;
   xl.Shape arrow;
   xl.Mask mask;
@@ -34,9 +34,11 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
   FlowNodeItemRenderer() : super() {
     backgroundGroup = new xl.Sprite()..mouseEnabled = false;
+    buttonGroup = new xl.Sprite();
     arrowGroup = new xl.Sprite()..mouseEnabled = false;
 
     addChild(backgroundGroup);
+    addChild(buttonGroup);
     addChild(arrowGroup);
 
     isOpen$.listen((bool isOpen) {
@@ -74,7 +76,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
         resize$sink.add(views[viewIndex]);
       });
 
-    container.onMouseRightClick
+    buttonGroup.onMouseClick
       .listen((_) {
         lastIndex = viewIndex;
         isOpen = !isOpen;
@@ -104,8 +106,10 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     super.update(state);
 
     backgroundGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
+    buttonGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
 
-    setBackground();
+    if (animation == null) setBackground();
+
     setButton(state.childCount > 0, state.isOpen);
 
     if (state.childCount > 0) {
@@ -151,32 +155,37 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     final double sy = dwhB.item2 / dwhA.item2;
     final double tx = 1.0 - sx, ty = 1.0 - sy;
 
+    if (info.position == AnimationPosition.START) setBackground();
+
     if (info.type != AnimationType.REPOSITION) {
       container.alpha = info.time;
       border.alpha = info.time;
       backgroundGroup.alpha = info.time;
+      buttonGroup.alpha = info.time;
       arrowGroup.alpha = info.time;
     } else {
+      container.alpha = 1.0;
+      border.alpha = 1.0;
+      backgroundGroup.alpha = 1.0;
+      buttonGroup.alpha = 1.0;
+      arrowGroup.alpha = 1.0;
+
       if (info.position == AnimationPosition.START && (viewIndex != lastIndex)) {
         _disableMouseEvents = true;
-
-        isAnimating = true;
       }
 
       if (dwhA.item1 != dwhB.item1) {
-        container.scaleX = border.scaleX = backgroundGroup.scaleX = arrowGroup.scaleX = sx + info.time * tx;
+        container.scaleX = border.scaleX = backgroundGroup.scaleX = buttonGroup.scaleX = arrowGroup.scaleX = sx + info.time * tx;
       }
 
       if (dwhA.item2 != dwhB.item2) {
-        container.scaleY = border.scaleY = backgroundGroup.scaleY = arrowGroup.scaleY = sy + info.time * ty;
+        container.scaleY = border.scaleY = backgroundGroup.scaleY = buttonGroup.scaleY = arrowGroup.scaleY = sy + info.time * ty;
       }
 
       if (info.position == AnimationPosition.COMPLETE && (viewIndex != lastIndex)) {
         _disableMouseEvents = false;
 
         lastIndex = viewIndex;
-
-        isAnimating = false;
       }
     }
   }
@@ -213,7 +222,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     }
 
     if (buttonStatic != null) {
-      if (backgroundGroup.contains(buttonStatic)) backgroundGroup.removeChild(buttonStatic);
+      if (buttonGroup.contains(buttonStatic)) buttonGroup.removeChild(buttonStatic);
     }
 
     if (hasChildren) {
@@ -227,7 +236,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
           ..y = views[viewIndex].item2 / 2 - bmp.height - 1;
       }
 
-      backgroundGroup.addChild(buttonStatic);
+      buttonGroup.addChild(buttonStatic);
     }
   }
 

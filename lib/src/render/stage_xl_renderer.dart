@@ -15,6 +15,7 @@ import 'package:flow/src/node_data.dart';
 import 'package:flow/src/display/node.dart';
 import 'package:flow/src/digest.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
+import 'package:flow/src/render/animation.dart';
 
 class StageXLRenderer<T> extends WebRenderer<T> {
 
@@ -189,6 +190,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         final double dh = childPos.item5.height;
         final bool isChildShownAnimation = entry.state.isOpen && !sprite.contains(child);
         final bool isChildHiddenAnimation = !entry.state.isOpen && sprite.contains(child);
+        double currentAnimationValue = -1.0;
 
         tuple.offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
@@ -213,44 +215,38 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             ..onUpdate = () => _onTweenUpdate(tuple, entry, sprite, child, nodeStyle, dw, dh);
         }
 
+        if (child.animation != null && !child.animation.isComplete) {
+          child.animation.stop();
+
+          currentAnimationValue = child.animation.currentValue;
+        }
+
         if (isChildShownAnimation) {
           final xl.Tween tweenC = tweenB;
           tweenB = tweenA;
           tweenA = tweenC;
 
+          currentAnimationValue = (currentAnimationValue == -1.0) ? .0 : currentAnimationValue;
+
           tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
-          if (!child.isAnimating) stage.juggler.addTranslation(.0, 1.0, ANIMATION_TIME_MS / 375, xl.Transition.easeOutSine, (num value) {
-            child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_OPEN, AnimationPosition.UPDATE, value.toDouble()));
-
-            materializeStage$sink.add(true);
-          })
-            ..onStart = (() => child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_OPEN, AnimationPosition.START, .0)))
-            ..onComplete = (() => child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_OPEN, AnimationPosition.COMPLETE, 1.0)));
+          child.animation = new Animation(stage.juggler, AnimationType.CHILDREN_OPEN, currentAnimationValue, 1.0, ANIMATION_TIME_MS / 500, xl.Transition.easeOutSine)..start();
 
           if (!sprite.contains(child)) sprite.addChild(child);
         } else if (isChildHiddenAnimation) {
+          currentAnimationValue = (currentAnimationValue == -1.0) ? 1.0 : currentAnimationValue;
+
           tweenA.delay = childPos.item5.childIndex * ANIMATION_TIME_MS / 3000;
 
           tweenB.onComplete = () {
             if (sprite.contains(child)) sprite.removeChild(child);
           };
 
-          if (!child.isAnimating) stage.juggler.addTranslation(1.0, .0, ANIMATION_TIME_MS / 375, xl.Transition.easeOutSine, (num value) {
-            child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_CLOSE, AnimationPosition.UPDATE, value.toDouble()));
+          child.animation = new Animation(stage.juggler, AnimationType.CHILDREN_CLOSE, currentAnimationValue, .0, ANIMATION_TIME_MS / 500, xl.Transition.easeOutSine)..start();
+        } else {
+          currentAnimationValue = (currentAnimationValue == -1.0) ? .0 : currentAnimationValue;
 
-            materializeStage$sink.add(true);
-          })
-            ..onStart = (() => child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_CLOSE, AnimationPosition.UPDATE, 1.0)))
-            ..onComplete = (() => child.animation$sink.add(new AnimationInfo(AnimationType.CHILDREN_CLOSE, AnimationPosition.COMPLETE, .0)));
-        } else if (!child.isAnimating) {
-          stage.juggler.addTranslation(.0, 1.0, ANIMATION_TIME_MS / 1500, xl.Transition.linear, (num value) {
-            child.animation$sink.add(new AnimationInfo(AnimationType.REPOSITION, AnimationPosition.UPDATE, value.toDouble()));
-
-            materializeStage$sink.add(true);
-          })
-            ..onStart = (() => child.animation$sink.add(new AnimationInfo(AnimationType.REPOSITION, AnimationPosition.START, .0)))
-            ..onComplete = (() => child.animation$sink.add(new AnimationInfo(AnimationType.REPOSITION, AnimationPosition.COMPLETE, 1.0)));
+          child.animation = new Animation(stage.juggler, AnimationType.REPOSITION, currentAnimationValue, 1.0, ANIMATION_TIME_MS / 1000, xl.Transition.easeOutSine)..start();
         }
 
         tweens.add(<xl.Tween>[tweenA, tweenB].where((xl.Tween tween) => tween != null).toList(growable: false));
