@@ -9,10 +9,12 @@ environment:
 
 dependencies:
   browser: any
-  stagexl: any
+  stagexl:
+    path: ../stagexl
   tuple: any
   stream_channel: any
-  rxdart: any
+  rxdart:
+    path: ../rxdart
   quiver_hashcode: any
 
 dev_dependencies:

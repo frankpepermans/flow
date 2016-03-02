@@ -34,14 +34,14 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     container = html.querySelector(containerSelector);
     canvas = html.querySelector(canvasSelector);
 
-    canvas.context2D;
+    //canvas.context2D;
 
     container.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
-        ..renderEngine = xl.RenderEngine.WebGL
+        ..renderEngine = xl.RenderEngine.Canvas2D
         ..inputEventMode = xl.InputEventMode.MouseAndTouch
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE

@@ -21,7 +21,10 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
   xl.Sprite backgroundGroup, arrowGroup;
   xl.Bitmap backgroundStatic, buttonStatic;
   xl.Shape arrow;
-  int viewIndex = 0;
+  xl.Mask mask;
+  int viewIndex = 0, lastIndex = 0;
+
+  bool _disableMouseEvents = false;
 
   final List<Tuple2<double, double>> views = const <Tuple2<double, double>>[
     const Tuple2<double, double>(28.0, 138.0),
@@ -38,6 +41,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
     isOpen$.listen((bool isOpen) {
       if (isOpen && viewIndex == 0) {
+        lastIndex = viewIndex;
         viewIndex = 1;
 
         resize$sink.add(views[viewIndex]);
@@ -62,6 +66,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
     container.onMouseClick
       .listen((_) {
+        lastIndex = viewIndex;
         viewIndex++;
 
         if (viewIndex >= views.length) viewIndex = 0;
@@ -71,6 +76,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
     container.onMouseRightClick
       .listen((_) {
+        lastIndex = viewIndex;
         isOpen = !isOpen;
 
         if (isOpen && viewIndex == 0) {
@@ -85,17 +91,19 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
       });
 
     container.onMouseOver.listen((_) {
-      className$sink.add('flow-node-hover');
+      if (!_disableMouseEvents) className$sink.add('flow-node-hover');
     });
 
     container.onMouseOut.listen((_) {
-      className$sink.add('flow-node');
+      if (!_disableMouseEvents) className$sink.add('flow-node');
     });
   }
 
   @override
   void update(ItemRendererState<T> state) {
     super.update(state);
+
+    backgroundGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
 
     setBackground();
     setButton(state.childCount > 0, state.isOpen);
@@ -130,6 +138,46 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
       arrow.rotation = state.isOpen ? math.PI : .0;
     } else {
       if (arrow != null && arrowGroup.contains(arrow)) arrowGroup.removeChild(arrow);
+    }
+  }
+
+  @override
+  void updateOnAnimation(AnimationInfo info) {
+    super.updateOnAnimation(info);
+
+    final Tuple2<double, double> dwhA = views[viewIndex];
+    final Tuple2<double, double> dwhB = views[lastIndex];
+    final double sx = dwhB.item1 / dwhA.item1;
+    final double sy = dwhB.item2 / dwhA.item2;
+    final double tx = 1.0 - sx, ty = 1.0 - sy;
+
+    if (info.type != AnimationType.REPOSITION) {
+      container.alpha = info.time;
+      border.alpha = info.time;
+      backgroundGroup.alpha = info.time;
+      arrowGroup.alpha = info.time;
+    } else {
+      if (info.position == AnimationPosition.START && (viewIndex != lastIndex)) {
+        _disableMouseEvents = true;
+
+        isAnimating = true;
+      }
+
+      if (dwhA.item1 != dwhB.item1) {
+        container.scaleX = border.scaleX = backgroundGroup.scaleX = arrowGroup.scaleX = sx + info.time * tx;
+      }
+
+      if (dwhA.item2 != dwhB.item2) {
+        container.scaleY = border.scaleY = backgroundGroup.scaleY = arrowGroup.scaleY = sy + info.time * ty;
+      }
+
+      if (info.position == AnimationPosition.COMPLETE && (viewIndex != lastIndex)) {
+        _disableMouseEvents = false;
+
+        lastIndex = viewIndex;
+
+        isAnimating = false;
+      }
     }
   }
 
