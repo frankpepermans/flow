@@ -61,6 +61,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.width = stage.sourceWidth = tuple.item1;
+              canvas.style.width = '${tuple.item1}px';
               materializeStage$sink.add(true);
 
               timer.cancel();
@@ -68,6 +69,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           });
         } else {
           canvas.width = stage.sourceWidth = tuple.item1;
+          canvas.style.width = '${tuple.item1}px';
           materializeStage$sink.add(true);
         }
 
@@ -75,6 +77,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
               canvas.height = stage.sourceHeight = tuple.item2;
+              canvas.style.height = '${tuple.item2}px';
               materializeStage$sink.add(true);
 
               timer.cancel();
@@ -82,6 +85,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           });
         } else {
           canvas.height = stage.sourceHeight = tuple.item2;
+          canvas.style.height = '${tuple.item2}px';
           materializeStage$sink.add(true);
         }
       });

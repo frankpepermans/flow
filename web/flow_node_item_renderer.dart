@@ -80,7 +80,7 @@ class FlowNodeItemRenderer<T extends Person> extends StageXLItemRenderer<T> {
 
     bool isOpen = false;
 
-    container.onMouseClick
+    new rx.Observable.merge(<Stream>[container.onMouseClick, container.onTouchTap])
       .listen((_) {
         lastIndex = viewIndex;
         viewIndex++;
@@ -90,7 +90,7 @@ class FlowNodeItemRenderer<T extends Person> extends StageXLItemRenderer<T> {
         resize$sink.add(views[viewIndex]);
       });
 
-    buttonGroup.onMouseClick
+    new rx.Observable.merge(<Stream>[buttonGroup.onMouseClick, buttonGroup.onTouchTap])
       .listen((_) {
         lastIndex = viewIndex;
         isOpen = !isOpen;
