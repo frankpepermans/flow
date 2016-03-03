@@ -42,12 +42,12 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     stage = new xl.Stage(canvas,
       options: xl.Stage.defaultOptions.clone()
         ..antialias = true
-        ..renderEngine = xl.RenderEngine.Canvas2D
+        ..renderEngine = xl.RenderEngine.WebGL
         ..inputEventMode = xl.InputEventMode.MouseAndTouch
       )
       ..scaleMode = xl.StageScaleMode.NO_SCALE
+      ..backgroundColor = 0xffeeeeee
       ..align = xl.StageAlign.TOP_LEFT
-      ..backgroundColor = xl.Color.White
       ..renderMode = xl.StageRenderMode.ONCE;
     topContainer = new xl.Sprite();
     screenSize$ctrl = new StreamController<Tuple2<int, int>>();
@@ -60,28 +60,28 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         if (tuple.item1 < canvas.width) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
-              canvas.width = tuple.item1;
+              canvas.width = stage.sourceWidth = tuple.item1;
               materializeStage$sink.add(true);
 
               timer.cancel();
             }
           });
         } else {
-          canvas.width = tuple.item1;
+          canvas.width = stage.sourceWidth = tuple.item1;
           materializeStage$sink.add(true);
         }
 
         if (tuple.item2 < canvas.height) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
-              canvas.height = tuple.item2;
+              canvas.height = stage.sourceHeight = tuple.item2;
               materializeStage$sink.add(true);
 
               timer.cancel();
             }
           });
         } else {
-          canvas.height = tuple.item2;
+          canvas.height = stage.sourceHeight = tuple.item2;
           materializeStage$sink.add(true);
         }
       });

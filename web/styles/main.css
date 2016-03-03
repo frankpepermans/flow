@@ -33,8 +33,10 @@ html, body {
 .flow-container {
     top: 0;
     bottom: 0;
-    height: 90%;
     overflow: auto;
+    width: 100%;
+    height: 100%;
+    background: #eee;
 }
 
 .flow-top-level-node {

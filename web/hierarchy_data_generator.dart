@@ -8,11 +8,20 @@ class HierarchyDataGenerator {
 
   HierarchyDataGenerator();
 
-  void generate(int count) {
+  Map<Person, Person> generate(int count) {
     final Random random = new Random();
-    final Iterable<Person> people = getPeople(count);
+    final List<Person> people = getPeople(count).toList();
+    final Map<Person, Person> relations = <Person, Person>{};
 
+    while (people.length > 1) {
+      Person person = people.removeLast();
 
+      relations[person] = people[random.nextInt(people.length)];
+    }
+
+    relations[people.first] = null;
+
+    return relations;
   }
 
   Iterable<Person> getPeople(int count) sync* {
@@ -26,7 +35,7 @@ class HierarchyDataGenerator {
       faker.company.position(),
       faker.job.title(),
       faker.address.city(),
-      'images/bigshot${new String.fromCharCode(65 + random.nextInt(10))}'
+      'bigshot${new String.fromCharCode(65 + random.nextInt(10))}'
     );
   }
 
@@ -37,6 +46,8 @@ class Person {
   final String firstName, lastName, jobMain, jobTitle, city, image;
 
   Person(this.firstName, this.lastName, this.jobMain, this.jobTitle, this.city, this.image);
+
+  int compareTo(Person person) => '$firstName $lastName'.compareTo('${person.firstName} ${person.lastName}');
 
   String toString() => <String, dynamic>{
     'firstName': firstName,

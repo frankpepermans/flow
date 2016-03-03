@@ -13,13 +13,17 @@ import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/stage_xl_resource_manager.dart';
 import 'package:flow/src/render/item_renderer.dart';
 
+import 'hierarchy_data_generator.dart';
+
 final StageXLResourceManager resourceManager = new StageXLResourceManager();
 final xl.TextureAtlas atlas = resourceManager.resourceManager.getTextureAtlas("atlas");
+final xl.TextureAtlas mugs = resourceManager.resourceManager.getTextureAtlas("mugs");
 
-class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
+class FlowNodeItemRenderer<T extends Person> extends StageXLItemRenderer<T> {
 
-  xl.Sprite backgroundGroup, buttonGroup, arrowGroup;
-  xl.Bitmap backgroundStatic, buttonStatic;
+  xl.TextField nameField, jobField, jobMainField, cityField;
+  xl.Sprite backgroundGroup, buttonGroup, arrowGroup, mugGroup;
+  xl.Bitmap backgroundStatic, buttonStatic, mugStatic;
   xl.Shape arrow;
   xl.Mask mask;
   int viewIndex = 0, lastIndex = 0;
@@ -33,11 +37,21 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
   ];
 
   FlowNodeItemRenderer() : super() {
+    nameField = new xl.TextField()..mouseEnabled = false;
+    jobField = new xl.TextField()..mouseEnabled = false;
+    jobMainField = new xl.TextField()..mouseEnabled = false;
+    cityField = new xl.TextField()..mouseEnabled = false;
     backgroundGroup = new xl.Sprite()..mouseEnabled = false;
+    mugGroup = new xl.Sprite()..mouseEnabled = false;
     buttonGroup = new xl.Sprite();
     arrowGroup = new xl.Sprite()..mouseEnabled = false;
 
     addChild(backgroundGroup);
+    addChild(mugGroup);
+    addChild(nameField);
+    addChild(jobField);
+    addChild(jobMainField);
+    addChild(cityField);
     addChild(buttonGroup);
     addChild(arrowGroup);
 
@@ -106,14 +120,63 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
     super.update(state);
 
     backgroundGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
+    mugGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
     buttonGroup.mask = new xl.Mask.rectangle(-state.w/2, -state.h/2, state.w, state.h);
 
     if (animation == null) setBackground();
 
+    final Person person = state.data;
+
     setButton(state.childCount > 0, state.isOpen);
 
+    if (viewIndex > 0) setMug(person.image);
+    else setMug(null);
+
+    nameField.rotation = (viewIndex == 0) ? math.PI / 2 : .0;
+
+    nameField.text = '${person.lastName} ${person.firstName}';
+
+    jobMainField.visible = (viewIndex == 2);
+    jobMainField.width = state.w/2 + 20.0;
+    jobMainField.x = -30.0;
+    jobMainField.y = -50.0;
+    jobMainField.text = person.jobMain;
+
+    jobField.visible = (viewIndex == 2);
+    jobField.width = state.w/2 + 20.0;
+    jobField.x = -30.0;
+    jobField.y = -30.0;
+    jobField.text = person.jobTitle;
+
+    cityField.visible = (viewIndex == 2);
+    cityField.width = state.w/2 + 20.0;
+    cityField.x = -30.0;
+    cityField.y = -10.0;
+    cityField.text = person.city;
+
+    switch (viewIndex) {
+      case 0:
+        nameField.defaultTextFormat = new xl.TextFormat('Arial', 12.0, xl.Color.DarkSlateGray, align: xl.TextFormatAlign.LEFT);
+        nameField.width = state.h - 27.0;
+        nameField.x = 7.0;
+        nameField.y = -60.0;
+        break;
+      case 1:
+        nameField.defaultTextFormat = new xl.TextFormat('Arial', 12.0, xl.Color.DarkSlateGray, align: xl.TextFormatAlign.CENTER);
+        nameField.width = state.w - 20.0;
+        nameField.x = 10.0 - state.w/2;
+        nameField.y = -57.0;
+        break;
+      case 2:
+        nameField.defaultTextFormat = new xl.TextFormat('Arial', 12.0, xl.Color.DarkSlateGray, align: xl.TextFormatAlign.CENTER);
+        nameField.width = state.w - 20.0;
+        nameField.x = 10.0 - state.w/2;
+        nameField.y = -87.0;
+        break;
+    }
+
     if (state.childCount > 0) {
-      const int size = 6;
+      const int size = 5;
 
       if (arrow == null) arrow = new xl.Shape();
 
@@ -122,7 +185,7 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
       final xl.Graphics g = arrow.graphics;
 
       arrow.x = 0;
-      arrow.y = state.h / 2 - (state.isOpen ? 9 : 7);
+      arrow.y = state.h / 2 - (state.isOpen ? 9 : 7) - ((viewIndex == 2) ? 4 : 0);
 
       g.clear();
 
@@ -238,6 +301,42 @@ class FlowNodeItemRenderer<T> extends StageXLItemRenderer<T> {
 
       buttonGroup.addChild(buttonStatic);
     }
+  }
+
+  void setMug(String imageName) {
+    final xl.Graphics g = mugGroup.graphics;
+
+    g.clear();
+
+    if (mugStatic != null) {
+      if (mugGroup.contains(mugStatic)) mugGroup.removeChild(mugStatic);
+    }
+
+    if (imageName == null) return;
+
+    final double d = (viewIndex == 1) ? 60.0 : 100.0;
+    final double x = (viewIndex == 2) ? -110.0 : .0;
+    final double y = (viewIndex == 1) ? 10.0 : 4.0;
+
+    final xl.BitmapData bmp = mugs.getBitmapData(imageName);
+
+    mugStatic = new xl.Bitmap(bmp)
+      ..x = -d/2 + x
+      ..y = -d/2 + y
+      ..width = d
+      ..height = d;
+
+    g.beginPath();
+    g.rect(x -d/2 - 3.0, y -d/2 - 3.0, d + 6.0, d + 6.0);
+    g.fillColor(xl.Color.LightGray);
+    g.closePath();
+
+    g.beginPath();
+    g.rect(x -d/2 - 1.0, y -d/2 - 1.0, d + 2.0, d + 2.0);
+    g.fillColor(xl.Color.White);
+    g.closePath();
+
+    mugGroup.addChild(mugStatic);
   }
 
 }

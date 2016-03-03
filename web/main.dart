@@ -13,39 +13,21 @@ void main() {
   final StageXLResourceManager rm = new StageXLResourceManager();
 
   rm.resourceManager.addTextureAtlas('atlas', 'atlas.json');
+  rm.resourceManager.addTextureAtlas('mugs', 'mugs.json');
 
   rm.resourceManager.load()
     .then((_) {
-      final StageXLRenderer<String> renderer = new StageXLRenderer<String>('#flow-container', '#flow-canvas');
-      final Hierarchy<String> hierarchy = new Hierarchy<String>(renderer, childCompareHandler: (String dataA, String dataB) => dataA.compareTo(dataB));
+      final StageXLRenderer<Person> renderer = new StageXLRenderer<Person>('#flow-container', '#flow-canvas');
+      final Hierarchy<Person> hierarchy = new Hierarchy<Person>(renderer, childCompareHandler: (Person dataA, Person dataB) => dataA.compareTo(dataB));
 
       hierarchy.orientation = HierarchyOrientation.VERTICAL;
 
-      hierarchy.add('A', className: 'flow-top-level-node', itemRenderer: (String data) => new FlowNodeItemRenderer<String>());
-      hierarchy.add('B', className: 'flow-top-level-node', itemRenderer: (String data) => new FlowNodeItemRenderer<String>());
-
-      _addRandomChildren(hierarchy, 'A', 0);
-      _addRandomChildren(hierarchy, 'B', 0);
-
-      querySelector('#button-orientation').onClick.listen((_) {
-        if (hierarchy.orientation == HierarchyOrientation.VERTICAL)
-          hierarchy.orientation = HierarchyOrientation.HORIZONTAL;
-        else
-          hierarchy.orientation = HierarchyOrientation.VERTICAL;
+      new HierarchyDataGenerator().generate(500).forEach((Person person, Person owner) {
+        if (owner == null) {
+          hierarchy.add(person, className: 'flow-top-level-node', itemRenderer: (Person data) => new FlowNodeItemRenderer<Person>());
+        } else {
+          hierarchy.add(person, parentData: owner, itemRenderer: (Person data) => new FlowNodeItemRenderer<Person>());
+        }
       });
     });
-
-  new HierarchyDataGenerator().getPeople(100).forEach((Person person) => print(person));
-}
-
-void _addRandomChildren(Hierarchy<String> hierarchy, String parent, int level) {
-  final math.Random R = new math.Random();
-  final int len = R.nextInt(4) + 1;
-
-  for (int i=0; i<len; i++) {
-    String next = R.nextInt(0xffffff).toString();
-    hierarchy.add(next, parentData: parent, itemRenderer: (String data) => new FlowNodeItemRenderer<String>());
-
-    if (level < 4) _addRandomChildren(hierarchy, next, level + 1);
-  }
 }
