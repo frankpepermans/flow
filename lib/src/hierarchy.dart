@@ -36,6 +36,7 @@ class Hierarchy<T> {
   final StreamController<Tuple5<bool, T, T, String, Function>> _retryNodeData$ctrl = new StreamController<Tuple5<bool, T, T, String, Function>>();
   final StreamController<UnmodifiableListView<NodeData<T>>> _nodeData$ctrl = new StreamController<UnmodifiableListView<NodeData<T>>>.broadcast();
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>.broadcast();
+  final StreamController<T> _showData$ctrl = new StreamController<T>.broadcast();
 
   final StreamController<NodeState> node$ctrl = new StreamController<NodeState>();
 
@@ -147,6 +148,10 @@ class Hierarchy<T> {
           itemRenderer.renderingRequired$.listen((_) => renderer.materializeStage$sink.add(true));
 
           parentNodeData.addChildSink.add(newNodeData);
+
+          itemRenderer.isOpen$.listen((bool isOpen) {
+            if (isOpen) parentNodeData.itemRenderer.isOpen$sink.add(true);
+          });
         }
 
         new rx.Observable.combineLatest(<Stream>[
@@ -166,6 +171,8 @@ class Hierarchy<T> {
         newNodeData.init();
 
         itemRenderer?.orientation$sink?.add(_orientation);
+
+        _showData$ctrl.stream.where((T data) => data == tuple.item2).listen((_) => itemRenderer?.isOpen$sink?.add(true));
 
         modifier.add(newNodeData);
       } else {
@@ -191,6 +198,8 @@ class Hierarchy<T> {
   void add(T data, {T parentData, String className, ItemRenderer<T> itemRenderer(T data)}) => _addNodeData$ctrl.add(new Tuple4<T, T, String, Function>(data, parentData, className, itemRenderer));
 
   void remove(T data) => _removeNodeData$ctrl.add(data);
+
+  void show(T data) => _showData$ctrl.add(data);
 
   UnmodifiableListView<RenderState<T>> _digest(Digestable<T> digestable) {
     if (_currentDigest == null) _currentDigest = new Digest();

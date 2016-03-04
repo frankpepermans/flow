@@ -22,7 +22,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   static const int ANIMATION_TIME_MS = 300;
 
   final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
-  final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>();
+  final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>.broadcast();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
 
   html.DivElement container;
@@ -34,8 +34,6 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   StageXLRenderer(String containerSelector, String canvasSelector) : super() {
     container = html.querySelector(containerSelector);
     canvas = html.querySelector(canvasSelector);
-
-    //canvas.context2D;
 
     container.onScroll.map((_) => true).listen(materializeStage$sink.add);
 
@@ -54,9 +52,12 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
     stage.addChild(topContainer);
 
-    rx.observable(screenSize$ctrl.stream)
-      .distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next)
-      .listen((Tuple2<int, int> tuple) {
+    new rx.Observable.combineLatest(<Stream>[
+      rx.observable(screenSize$ctrl.stream).distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next),
+      rx.observable(dataFocus$ctrl.stream).startWith(const [null]),
+      _offsetTable$ctrl.stream
+    ], (Tuple2<int, int> tuple, T dataToFocus, Map<ItemRenderer<T>, Tuple2<double, double>> offsets) => new Tuple4<int, int, T, Map<ItemRenderer<T>, Tuple2<double, double>>>(tuple.item1, tuple.item2, dataToFocus, offsets))
+      .listen((Tuple4<int, int, T, Map<ItemRenderer<T>, Tuple2<double, double>>> tuple) {
         if (tuple.item1 < canvas.width) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
@@ -98,7 +99,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           Map<NodeData<T>, RenderState<T>> rootItems,
           HierarchyOrientation orientation
         ) => new _InvalidationTuple<T>(data, parentMap, offsetTable, rootItems, orientation))
-          .debounce(const Duration(milliseconds: 40))
+          .debounce(const Duration(milliseconds: 100))
           .map(_invalidate)
           .listen((List<List<xl.Tween>> animations) {
             animations.forEach((List<xl.Tween> animation) {

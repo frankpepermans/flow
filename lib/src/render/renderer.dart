@@ -27,6 +27,7 @@ abstract class Renderer<T> {
   final StreamController<Iterable<RenderState<T>>> _state$ctrl = new StreamController<Iterable<RenderState<T>>>();
   final StreamController<bool> _materializeStage$ctrl = new StreamController<bool>();
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
+  final StreamController<T> dataFocus$ctrl = new StreamController<T>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
 
