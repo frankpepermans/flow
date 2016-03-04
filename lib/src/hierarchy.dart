@@ -41,10 +41,11 @@ class Hierarchy<T> {
   final StreamController<NodeState> node$ctrl = new StreamController<NodeState>();
 
   NodeData<T> topLevelNodeData;
-  Digest<T> _currentDigest;
   HierarchyOrientation _orientation;
 
   Hierarchy(this.renderer, {NodeEqualityHandler<T> equalityHandler, ChildCompareHandler<T> childCompareHandler}) {
+    final Digest<T> digest = new Digest();
+
     if (equalityHandler == null) equalityHandler = (T dataA, T dataB) => dataA == dataB;
     if (childCompareHandler == null) childCompareHandler = (T dataA, T dataB) => 0;
 
@@ -159,10 +160,18 @@ class Hierarchy<T> {
           newNodeData.parent$,
           newNodeData.children$,
           rx.observable(newNodeData.childPosition$).startWith([null])
-        ], (NodeState state, NodeData<T> parent, UnmodifiableListView<NodeData<T>> children, Tuple5<NodeData<T>, double, double, UnmodifiableListView<NodeState>, NodeState> childPos) {
-          return new Digestable(quiver.hash2(newNodeData, childPos?.item1), new RenderState<T>(newNodeData, state, parent, children, childPos));
-        })
-          .map((Digestable<T> digestable) => _digest(digestable))
+        ], (
+            NodeState state,
+            NodeData<T> parent,
+            UnmodifiableListView<NodeData<T>> children,
+            Tuple5<NodeData<T>,
+            double,
+            double,
+            UnmodifiableListView<NodeState>,
+            NodeState> childPos) => new Digestable(quiver.hash2(newNodeData, childPos?.item1), new RenderState<T>(newNodeData, state, parent, children, childPos)))
+          .map(digest.append)
+          .debounce(const Duration(milliseconds: 20))
+          .map((_) => new UnmodifiableListView<RenderState<T>>(digest.flush().values.toList(growable: false)))
           .listen(renderer.state$sink.add);
 
         newNodeData.node.className$sink.add(className);
@@ -200,14 +209,6 @@ class Hierarchy<T> {
   void remove(T data) => _removeNodeData$ctrl.add(data);
 
   void show(T data) => _showData$ctrl.add(data);
-
-  UnmodifiableListView<RenderState<T>> _digest(Digestable<T> digestable) {
-    if (_currentDigest == null) _currentDigest = new Digest();
-
-    _currentDigest.append(digestable);
-
-    return new UnmodifiableListView<RenderState<T>>(_currentDigest.flush().values.toList(growable: false));
-  }
 }
 
 class NodeStyle {
