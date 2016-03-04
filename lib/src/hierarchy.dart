@@ -58,6 +58,8 @@ class Hierarchy<T> {
       topLevelNodeData.orientationSink.add(orientation);
     });
 
+    _showData$ctrl.stream.listen(renderer.dataFocus$ctrl.add);
+
     new rx.Observable.zip(
     [
       new rx.Observable.merge(<Stream<Tuple5<bool, T, T, String, Function>>>[
@@ -95,9 +97,7 @@ class Hierarchy<T> {
 
           itemRenderer.isOpen$sink.add(true);
 
-          itemRenderer.className$.listen((String className) {
-            node.className$sink.add(className);
-          });
+          itemRenderer.className$.listen(node.className$sink.add);
 
           itemRenderer.animation$.map((_) => true).listen(renderer.materializeStage$sink.add);
 
@@ -128,9 +128,7 @@ class Hierarchy<T> {
 
           itemRenderer.isOpen$sink.add(false);
 
-          itemRenderer.className$.listen((String className) {
-            node.className$sink.add(className);
-          });
+          itemRenderer.className$.listen(node.className$sink.add);
 
           itemRenderer.animation$.map((_) => true).listen(renderer.materializeStage$sink.add);
 
@@ -150,7 +148,9 @@ class Hierarchy<T> {
           parentNodeData.addChildSink.add(newNodeData);
 
           itemRenderer.isOpen$.listen((bool isOpen) {
-            if (isOpen) parentNodeData.itemRenderer.isOpen$sink.add(true);
+            if (isOpen) {
+              parentNodeData.itemRenderer.isOpen$sink.add(true);
+            }
           });
         }
 

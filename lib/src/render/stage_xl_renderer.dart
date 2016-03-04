@@ -21,8 +21,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
   static const int ANIMATION_TIME_MS = 300;
 
-  final StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>> _parentMap$ctrl = new StreamController<Map<ItemRenderer<T>, xl.DisplayObjectContainer>>();
-  final StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<ItemRenderer<T>, Tuple2<double, double>>>.broadcast();
+  final StreamController<Map<NodeData<T>, NodeData<T>>> _parentMap$ctrl = new StreamController<Map<NodeData<T>, NodeData<T>>>.broadcast();
+  final StreamController<Map<NodeData<T>, Tuple2<double, double>>> _offsetTable$ctrl = new StreamController<Map<NodeData<T>, Tuple2<double, double>>>.broadcast();
   final StreamController<Map<NodeData<T>, RenderState<T>>> _rootItems$ctrl = new StreamController<Map<NodeData<T>, RenderState<T>>>();
 
   html.DivElement container;
@@ -30,6 +30,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
   xl.Stage stage;
   xl.Sprite topContainer;
   StreamController<Tuple2<int, int>> screenSize$ctrl;
+
+  Timer _focusTimer;
 
   StageXLRenderer(String containerSelector, String canvasSelector) : super() {
     container = html.querySelector(containerSelector);
@@ -55,13 +57,41 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     new rx.Observable.combineLatest(<Stream>[
       rx.observable(screenSize$ctrl.stream).distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next),
       rx.observable(dataFocus$ctrl.stream).startWith(const [null]),
+      _parentMap$ctrl.stream,
       _offsetTable$ctrl.stream
-    ], (Tuple2<int, int> tuple, T dataToFocus, Map<ItemRenderer<T>, Tuple2<double, double>> offsets) => new Tuple4<int, int, T, Map<ItemRenderer<T>, Tuple2<double, double>>>(tuple.item1, tuple.item2, dataToFocus, offsets))
-      .listen((Tuple4<int, int, T, Map<ItemRenderer<T>, Tuple2<double, double>>> tuple) {
+    ], (Tuple2<int, int> tuple, T dataToFocus, Map<NodeData<T>, NodeData<T>> parentMap, Map<NodeData<T>, Tuple2<double, double>> offsets) => new Tuple5<int, int, T, Map<NodeData<T>, NodeData<T>>, Map<NodeData<T>, Tuple2<double, double>>>(tuple.item1, tuple.item2, dataToFocus, parentMap, offsets))
+      .listen((Tuple5<int, int, T, Map<NodeData<T>, NodeData<T>>, Map<NodeData<T>, Tuple2<double, double>>> tuple) {
+        if (tuple.item3 != null) {
+          final NodeData<T> nodeDataToFocus = tuple.item4.keys.firstWhere((NodeData<T> nodeData) => nodeData.data == tuple.item3, orElse: () => null);
+
+          if (nodeDataToFocus != null) {
+            final Tuple2<double, double> positionToFocus = calculateOffset(nodeDataToFocus, tuple.item4, tuple.item5);
+            double sx = positionToFocus.item1 - container.clientWidth/2;
+            double sy = positionToFocus.item2 - container.clientHeight/2;
+
+            if (sx < .0) sx = .0;
+            if (sy < .0) sy = .0;
+
+            if (_focusTimer != null) _focusTimer.cancel();
+
+            _focusTimer = new Timer(const Duration(milliseconds: 1000), () {
+              _focusTimer = null;
+
+              dataFocus$ctrl.add(null);
+            });
+
+            new Timer(const Duration(milliseconds: 100), () {
+              container.scrollLeft = sx.round();
+              container.scrollTop = sy.round();
+            });
+          }
+        }
+
         if (tuple.item1 < canvas.width) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
-              canvas.width = stage.sourceWidth = tuple.item1;
+              stage.sourceWidth = tuple.item1;
+              canvas.width = tuple.item1 * stage.pixelRatio;
               canvas.style.width = '${tuple.item1}px';
               materializeStage$sink.add(true);
 
@@ -69,7 +99,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             }
           });
         } else {
-          canvas.width = stage.sourceWidth = tuple.item1;
+          stage.sourceWidth = tuple.item1;
+          canvas.width = tuple.item1 * stage.pixelRatio;
           canvas.style.width = '${tuple.item1}px';
           materializeStage$sink.add(true);
         }
@@ -77,7 +108,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         if (tuple.item2 < canvas.height) {
           new Timer.periodic(const Duration(milliseconds: 30), (Timer timer) {
             if (stage.renderMode == xl.StageRenderMode.STOP) {
-              canvas.height = stage.sourceHeight = tuple.item2;
+              stage.sourceHeight = tuple.item2;
+              canvas.height = tuple.item2 * stage.pixelRatio;
               canvas.style.height = '${tuple.item2}px';
               materializeStage$sink.add(true);
 
@@ -85,7 +117,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             }
           });
         } else {
-          canvas.height = stage.sourceHeight = tuple.item2;
+          stage.sourceHeight = tuple.item2;
+          canvas.height = tuple.item2 * stage.pixelRatio;
           canvas.style.height = '${tuple.item2}px';
           materializeStage$sink.add(true);
         }
@@ -94,8 +127,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
     new rx.Observable<_InvalidationTuple<T>>.combineLatest(<Stream>[state$, _parentMap$ctrl.stream, _offsetTable$ctrl.stream, _rootItems$ctrl.stream, orientation$],
         (
           Iterable<RenderState<T>> data,
-          Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap,
-          Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable,
+          Map<NodeData<T>, NodeData<T>> parentMap,
+          Map<NodeData<T>, Tuple2<double, double>> offsetTable,
           Map<NodeData<T>, RenderState<T>> rootItems,
           HierarchyOrientation orientation
         ) => new _InvalidationTuple<T>(data, parentMap, offsetTable, rootItems, orientation))
@@ -111,8 +144,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             materializeStage$sink.add(true);
           });
 
-    _parentMap$ctrl.add(<ItemRenderer<T>, xl.DisplayObjectContainer>{});
-    _offsetTable$ctrl.add(<ItemRenderer<T>, Tuple2<double, double>>{});
+    _parentMap$ctrl.add(<NodeData<T>, NodeData<T>>{});
+    _offsetTable$ctrl.add(<NodeData<T>, Tuple2<double, double>>{});
     _rootItems$ctrl.add(<NodeData<T>, RenderState<T>>{});
 
     new xl.RenderLoop()..addStage(stage);
@@ -125,17 +158,17 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
   ItemRenderer<T> newDefaultItemRendererInstance() => new StageXLItemRenderer();
 
-  Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap, Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable) {
-    final ItemRenderer<T> sprite = nodeData.itemRenderer;
-    final Tuple2<double, double> localOffset = offsetTable[sprite];
+  Tuple2<double, double> calculateOffset(NodeData<T> nodeData, Map<NodeData<T>, NodeData<T>> parentMap, Map<NodeData<T>, Tuple2<double, double>> offsetTable) {
+    final Tuple2<double, double> localOffset = offsetTable[nodeData];
 
     if (localOffset == null) return const Tuple2<double, double>(.0, .0);
 
-    xl.DisplayObjectContainer parent = parentMap[sprite];
+    NodeData<T> parentNodeData = parentMap[nodeData];
+    xl.DisplayObjectContainer parent = (parentNodeData == null) ? topContainer : parentNodeData.itemRenderer as xl.DisplayObjectContainer;
     double offsetX = localOffset.item1, offsetY = localOffset.item2;
 
     while (true) {
-      Tuple2<double, double> parentOffset = offsetTable[parent];
+      Tuple2<double, double> parentOffset = offsetTable[parentNodeData];
 
       if (parentOffset != null) {
         offsetX += parentOffset.item1;
@@ -144,9 +177,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
       if (parent == topContainer) break;
 
-      parent = parentMap[parent];
-
-      if (parent == null) parent = topContainer;
+      parentNodeData = parentMap[parentNodeData];
+      parent = (parentNodeData == null) ? topContainer : parentNodeData.itemRenderer as xl.DisplayObjectContainer;
     }
 
     return new Tuple2<double, double>(offsetX, offsetY);
@@ -187,7 +219,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
       final xl.DisplayObjectContainer container = isRoot ? topContainer : entry.parentNodeData.itemRenderer;
       final StageXLItemRenderer<T> child = (childPos != null) ? childPos.item1.itemRenderer : null;
 
-      tuple.parentMap[sprite] = container;
+      tuple.parentMap[entry.nodeData] = isRoot ? null : entry.parentNodeData;
 
       if (childPos != null) {
         final NodeStyle nodeStyle = styleClient.getNodeStyle(entry.childData.item5.className);
@@ -197,7 +229,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
         final bool isChildHiddenAnimation = !entry.state.isOpen && sprite.contains(child);
         double currentAnimationValue = -1.0;
 
-        tuple.offsetTable[child] = new Tuple2<double, double>(childPos.item2, childPos.item3);
+        tuple.offsetTable[childPos.item1] = new Tuple2<double, double>(childPos.item2, childPos.item3);
 
         child.data$sink.add(childPos.item1.data);
         child.size$sink.add(new Tuple2<double, double>(dw, dh));
@@ -287,7 +319,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
           offsetY += entry.state.actualHeight + nodeStyle.margin.item1 + nodeStyle.margin.item3;
         }
 
-        tuple.offsetTable[sprite] = new Tuple2<double, double>(tx, ty);
+        tuple.offsetTable[entry.nodeData] = new Tuple2<double, double>(tx, ty);
 
         tween = new xl.Tween(sprite, ANIMATION_TIME_MS / 1000)
           ..animate.x.to(tx)
@@ -331,8 +363,8 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 class _InvalidationTuple<T> {
 
   final Iterable<RenderState<T>> data;
-  final Map<ItemRenderer<T>, xl.DisplayObjectContainer> parentMap;
-  final Map<ItemRenderer<T>, Tuple2<double, double>> offsetTable;
+  final Map<NodeData<T>, NodeData<T>> parentMap;
+  final Map<NodeData<T>, Tuple2<double, double>> offsetTable;
   final Map<NodeData<T>, RenderState<T>> rootItems;
   final HierarchyOrientation orientation;
 
