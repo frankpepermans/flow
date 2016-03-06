@@ -13,6 +13,8 @@ import 'package:flow/src/render/style_client.dart';
 import 'package:flow/src/stage_xl_resource_manager.dart';
 import 'package:flow/src/render/item_renderer.dart';
 
+import 'package:flow/src/force_print.dart';
+
 import 'hierarchy_data_generator.dart';
 
 final StageXLResourceManager resourceManager = new StageXLResourceManager();

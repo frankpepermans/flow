@@ -157,12 +157,21 @@ abstract class ItemRenderer<T> {
     ], (T data, Tuple4<double, double, double, double> connector, Tuple2<double, double> size, HierarchyOrientation orientation, String className, int childCount, bool isOpen) => new ItemRendererState<T>(data, size.item1, size.item2, connector.item1, connector.item2, connector.item3, connector.item4, orientation, className, childCount, isOpen))
       .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) => stateB.equals(stateA, equalityHandler));
 
-    state$.listen((ItemRendererState<T> state) {
-      update(state);
-      connect(state);
-
-      _renderingRequired$ctrl.add(true);
-    });
+    state$
+      .tap(connect)
+      .tap((ItemRendererState<T> state) => _renderingRequired$ctrl.add(true))
+      .distinct((ItemRendererState<T> stateA, ItemRendererState<T> stateB) {
+        return (
+            stateA.childCount == stateB.childCount &&
+            stateA.orientation == stateB.orientation &&
+            stateA.className == stateB.className &&
+            stateA.data == stateB.data &&
+            stateA.w == stateB.w &&
+            stateA.h == stateB.h &&
+            stateA.isOpen == stateB.isOpen
+        );
+      })
+      .listen(update);
 
     animation$.listen(updateOnAnimation);
 
