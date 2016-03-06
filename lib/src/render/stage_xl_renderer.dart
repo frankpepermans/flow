@@ -17,8 +17,6 @@ import 'package:flow/src/digest.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 import 'package:flow/src/render/animation.dart';
 
-import 'package:flow/src/force_print.dart';
-
 class StageXLRenderer<T> extends WebRenderer<T> {
 
   static const int ANIMATION_TIME_MS = 300;
