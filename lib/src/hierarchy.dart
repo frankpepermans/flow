@@ -59,7 +59,7 @@ class Hierarchy<T> {
       topLevelNodeData.orientationSink.add(orientation);
     });
 
-    _showData$ctrl.stream.listen(renderer.dataFocus$ctrl.add);
+    _showData$ctrl.stream.listen(renderer.dataFocus$sink.add);
 
     new rx.Observable.zip(
     [

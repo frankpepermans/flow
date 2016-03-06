@@ -112,6 +112,7 @@ abstract class ItemRenderer<T> {
   Stream<bool> get isOpen$ => _isOpen$ctrl.stream;
   Stream<HierarchyOrientation> get orientation$ => _orientation$ctrl.stream;
   Stream<AnimationInfo> get animation$ => _animation$ctrl.stream;
+  Stream<bool> get visible$ => _visible$ctrl.stream;
 
   Sink<T> get data$sink => _data$ctrl.sink;
   Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
@@ -122,6 +123,7 @@ abstract class ItemRenderer<T> {
   Sink<bool> get isOpen$sink => _isOpen$ctrl.sink;
   Sink<int> get childCount$sink => _childCount$ctrl.sink;
   Sink<AnimationInfo> get animation$sink => _animation$ctrl.sink;
+  Sink<bool> get visible$sink => _visible$ctrl.sink;
 
   Stream<bool> get renderingRequired$ => _renderingRequired$ctrl.stream;
 
@@ -135,6 +137,7 @@ abstract class ItemRenderer<T> {
   final StreamController<bool> _isOpen$ctrl = new StreamController<bool>.broadcast();
   final StreamController<int> _childCount$ctrl = new StreamController<int>.broadcast();
   final StreamController<AnimationInfo> _animation$ctrl = new StreamController<AnimationInfo>.broadcast();
+  final StreamController<bool> _visible$ctrl = new StreamController<bool>();
 
   int renderCount = 0;
 

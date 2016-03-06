@@ -35,7 +35,7 @@ class HierarchyDataGenerator {
       faker.company.position(),
       faker.job.title(),
       faker.address.city(),
-      'bigshot${new String.fromCharCode(65 + random.nextInt(10))}'
+      'img_${random.nextInt(41)+1}'
     );
   }
 

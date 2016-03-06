@@ -24,10 +24,13 @@ abstract class Renderer<T> {
   Sink<HierarchyOrientation> get orientation$sink => _orientation$ctrl.sink;
   Stream<HierarchyOrientation> get orientation$ => _orientation$ctrl.stream;
 
+  Sink<T> get dataFocus$sink => _dataFocus$ctrl.sink;
+  Stream<T> get dataFocus$ => _dataFocus$ctrl.stream;
+
   final StreamController<Iterable<RenderState<T>>> _state$ctrl = new StreamController<Iterable<RenderState<T>>>();
   final StreamController<bool> _materializeStage$ctrl = new StreamController<bool>();
   final StreamController<HierarchyOrientation> _orientation$ctrl = new StreamController<HierarchyOrientation>();
-  final StreamController<T> dataFocus$ctrl = new StreamController<T>();
+  final StreamController<T> _dataFocus$ctrl = new StreamController<T>();
 
   ItemRenderer<T> newDefaultItemRendererInstance();
 

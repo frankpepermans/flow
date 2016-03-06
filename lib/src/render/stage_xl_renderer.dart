@@ -17,6 +17,8 @@ import 'package:flow/src/digest.dart';
 import 'package:flow/src/hierarchy.dart' show HierarchyOrientation, NodeStyle;
 import 'package:flow/src/render/animation.dart';
 
+import 'package:flow/src/force_print.dart';
+
 class StageXLRenderer<T> extends WebRenderer<T> {
 
   static const int ANIMATION_TIME_MS = 300;
@@ -56,7 +58,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
     new rx.Observable.combineLatest(<Stream>[
       rx.observable(screenSize$ctrl.stream).distinct((Tuple2<int, int> prev, Tuple2<int, int> next) => prev == next),
-      rx.observable(dataFocus$ctrl.stream).startWith(const [null]),
+      rx.observable(dataFocus$).startWith(const [null]),
       _parentMap$ctrl.stream,
       _offsetTable$ctrl.stream
     ], (Tuple2<int, int> tuple, T dataToFocus, Map<NodeData<T>, NodeData<T>> parentMap, Map<NodeData<T>, Tuple2<double, double>> offsets) => new Tuple5<int, int, T, Map<NodeData<T>, NodeData<T>>, Map<NodeData<T>, Tuple2<double, double>>>(tuple.item1, tuple.item2, dataToFocus, parentMap, offsets))
@@ -77,7 +79,7 @@ class StageXLRenderer<T> extends WebRenderer<T> {
             _focusTimer = new Timer(const Duration(milliseconds: 1000), () {
               _focusTimer = null;
 
-              dataFocus$ctrl.add(null);
+              dataFocus$sink.add(null);
             });
 
             new Timer(const Duration(milliseconds: 100), () {
@@ -356,7 +358,24 @@ class StageXLRenderer<T> extends WebRenderer<T> {
 
     screenSize$ctrl.add(new Tuple2<int, int>(dw, dh));
 
+    final xl.Rectangle<int> visibleArea = new xl.Rectangle<int>(this.container.scrollLeft, this.container.scrollTop, dw, dh);
+
+    /*tuple.data.forEach((RenderState<T> entry) =>
+      entry.nodeData.itemRenderer.visible$sink.add(_isWithinVisibleRange(tuple.offsetTable[entry.nodeData], entry.state, visibleArea))
+    );*/
+
     return tweens;
+  }
+
+  bool _isWithinVisibleRange(Tuple2<double, double> position, NodeState state, xl.Rectangle<int> visibleArea) {
+    if (position == null) return true;
+
+    return (
+        visibleArea.contains(position.item1 - state.width/2, position.item2 - state.height/2) ||
+        visibleArea.contains(position.item1 - state.width/2, position.item2 + state.height/2) ||
+        visibleArea.contains(position.item1 + state.width/2, position.item2 - state.height/2) ||
+        visibleArea.contains(position.item1 + state.width/2, position.item2 + state.height/2)
+    );
   }
 }
 

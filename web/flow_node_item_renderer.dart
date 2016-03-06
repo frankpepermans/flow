@@ -55,6 +55,19 @@ class FlowNodeItemRenderer<T extends Person> extends StageXLItemRenderer<T> {
     addChild(buttonGroup);
     addChild(arrowGroup);
 
+    visible$.listen((bool isVisible) {
+      border.visible = isVisible;
+      container.visible = isVisible;
+      backgroundGroup.visible = isVisible;
+      mugGroup.visible = isVisible;
+      nameField.visible = isVisible;
+      jobField.visible = isVisible;
+      jobMainField.visible = isVisible;
+      cityField.visible = isVisible;
+      buttonGroup.visible = isVisible;
+      arrowGroup.visible = isVisible;
+    });
+
     isOpen$.listen((bool isOpen) {
       if (isOpen && viewIndex == 0) {
         lastIndex = viewIndex;
